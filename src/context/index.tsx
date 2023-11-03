@@ -74,7 +74,7 @@ function AuthProvider(props: AuthProviderProps) {
     setIsAuthenticated(false);
   }, []);
 
-  const appContext = useMemo(
+  const authContext = useMemo(
     () => ({
       user,
       isLoading,
@@ -87,7 +87,7 @@ function AuthProvider(props: AuthProviderProps) {
   );
 
   return (
-    <AuthContext.Provider value={appContext}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={authContext}>{children}</AuthContext.Provider>
   );
 }
 
