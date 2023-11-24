@@ -1,20 +1,9 @@
 import { IUser } from "src/types/user";
-import { generateState, generateCodeChallengePair } from "./codes";
+import { generateCodeChallengePair, generateState } from "../../utils/codes";
+import { getAuthorizationCode } from "src/utils/params";
 
 const SERVICE_URL =
   "https://odin.selsacloud.com/linix/v7/da77663b-eeaf-42a0-a093-5efbdb1e54d2/servicio/identidad";
-
-const getAuthorizationCode = () => {
-  const url = new URL(window.location.href);
-  const searchParams = new URLSearchParams(url.search);
-  const authorizationCode = searchParams.get("code");
-  const state = searchParams.get("state");
-
-  return {
-    authorizationCode,
-    state,
-  };
-};
 
 interface IAuthorizationCodeResponse {
   state: string;
