@@ -1,8 +1,32 @@
 {
   "name": "@inube/auth",
+  "homepage": "https://github.com/selsa-inube/auth#readme",
+  "description": "A react authentication library for inube",
   "private": false,
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
+  "main": "./dist/auth.umd.cjs",
+  "module": "./dist/auth.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/auth.js",
+      "require": "./dist/auth.umd.cjs"
+    }
+  },
+  "author": "",
+  "license": "ISC",
+  "keywords": [
+    "inube",
+    "auth"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/selsa-inube/auth.git"
+  },
+  "bugs": {
+    "url": "https://github.com/selsa-inube/auth/issues"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -18,30 +42,27 @@
   "devDependencies": {
     "@commitlint/cli": "^17.6.5",
     "@commitlint/config-conventional": "^17.6.5",
+    "@types/node": "^20.10.0",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "@vitejs/plugin-react": "^4.0.3",
-    "typescript": "^5.0.2",
-    "vite": "^4.4.5",
-    "vite-tsconfig-paths": "^4.2.1",
+    "auto": "^10.46.0",
     "eslint": "^8.38.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.3.4",
-    "prettier": "2.8.8",
     "husky": "^8.0.3",
     "lint-staged": "^13.2.2",
-    "auto": "^10.46.0"
+    "prettier": "2.8.8",
+    "typescript": "^5.0.2",
+    "vite": "^4.4.5",
+    "vite-plugin-dts": "^3.6.3",
+    "vite-tsconfig-paths": "^4.2.1"
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"
-  },
-  "description": "",
-  "main": "index.js",
-  "types": "src/types/index.d.ts",
-  "author": "",
-  "license": "ISC"
+  }
 }

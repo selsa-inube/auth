@@ -23,9 +23,8 @@
     "paths": {
       "src/*": ["./src/*"]
     },
-    "declaration": true,
-    "declarationDir": "./src/types",
+    "declaration": true
   },
-  "include": ["src"],
+  "include": ["src", "dist/index.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

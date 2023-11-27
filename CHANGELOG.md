@@ -1,3 +1,19 @@
+# v1.0.3 (Mon Nov 27 2023)
+
+#### 🐛 Bug Fix
+
+- sl/432/resolve-imports-and-types [#4](https://github.com/selsa-inube/auth/pull/4) ([@Sebas3245](https://github.com/Sebas3245))
+
+#### ⚠️ Pushed to `main`
+
+- feat: added dist on export library ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.0.2 (Mon Nov 27 2023)
 
 #### ⚠️ Pushed to `main`
