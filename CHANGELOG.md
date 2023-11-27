@@ -1,3 +1,17 @@
+# v1.0.2 (Mon Nov 27 2023)
+
+#### ⚠️ Pushed to `main`
+
+- Merge branch 'sl/432/resolve-imports-and-types' of https://github.com/selsa-inube/auth into sl/432/resolve-imports-and-types ([@Sebas3245](https://github.com/Sebas3245))
+- fix(global): import errors ([@Sebas3245](https://github.com/Sebas3245))
+- fix(global): remove import error and export types ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.0.1 (Fri Nov 24 2023)
 
 #### 💥 Breaking Change
