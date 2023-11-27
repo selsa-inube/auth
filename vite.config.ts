@@ -16,14 +16,17 @@ export default defineConfig({
       fileName: "index",
     },
     rollupOptions: {
-      external: ["react", "react-router-dom"],
-      output: {
+      external: ["react", "react-dom"],
+      /*       output: {
         globals: {
           react: "React",
-          "react-router-dom": "ReactRouterDOM",
+          "react-dom": "reactdom",
         },
-      },
+      }, */
     },
+  },
+  resolve: {
+    dedupe: ["react", "react-dom"],
   },
   plugins: [react(), vitesconfigPaths(), dts()],
 });
