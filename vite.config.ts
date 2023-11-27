@@ -15,6 +15,15 @@ export default defineConfig({
       name: "auth",
       fileName: "index",
     },
+    rollupOptions: {
+      external: ["react", "react-router-dom"],
+      output: {
+        globals: {
+          react: "React",
+          "react-router-dom": "ReactRouterDOM",
+        },
+      },
+    },
   },
   plugins: [react(), vitesconfigPaths(), dts()],
 });
