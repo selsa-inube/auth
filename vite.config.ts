@@ -1,11 +1,20 @@
 import react from "@vitejs/plugin-react";
+import { resolve } from "path";
 import { defineConfig } from "vite";
+import dts from "vite-plugin-dts";
 import vitesconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-  plugins: [react(), vitesconfigPaths()],
   server: {
     open: true,
     port: 3001,
   },
+  build: {
+    lib: {
+      entry: resolve(__dirname, "src/index.ts"),
+      name: "auth",
+      fileName: "index.js",
+    },
+  },
+  plugins: [react(), vitesconfigPaths(), dts()],
 });
