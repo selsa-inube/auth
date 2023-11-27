@@ -3,7 +3,7 @@
   "homepage": "https://github.com/selsa-inube/auth#readme",
   "description": "A react authentication library for inube",
   "private": false,
-  "version": "1.0.5",
+  "version": "1.0.6",
   "type": "module",
   "main": "./dist/index.umd.cjs",
   "module": "./dist/index.js",
