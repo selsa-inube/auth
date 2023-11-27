@@ -3,7 +3,7 @@
   "homepage": "https://github.com/selsa-inube/auth#readme",
   "description": "A react authentication library for inube",
   "private": false,
-  "version": "1.0.6",
+  "version": "1.0.7",
   "type": "module",
   "main": "./dist/index.umd.cjs",
   "module": "./dist/index.js",
@@ -38,7 +38,6 @@
     "prepare": "husky install",
     "auto": "auto"
   },
-  
   "devDependencies": {
     "@commitlint/cli": "^17.6.5",
     "@commitlint/config-conventional": "^17.6.5",
