@@ -92,3 +92,4 @@ function AuthProvider(props: AuthProviderProps) {
 }
 
 export { AuthContext, AuthProvider };
+export type { AuthProviderProps };
