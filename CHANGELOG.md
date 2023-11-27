@@ -1,3 +1,15 @@
+# v1.0.4 (Mon Nov 27 2023)
+
+#### ⚠️ Pushed to `main`
+
+- fix: added correct dist files ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.0.3 (Mon Nov 27 2023)
 
 #### 🐛 Bug Fix
