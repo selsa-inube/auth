@@ -1,3 +1,25 @@
+# v1.0.6 (Mon Nov 27 2023)
+
+#### 🐛 Bug Fix
+
+- Sl/432/resolve imports and types [#6](https://github.com/selsa-inube/auth/pull/6) ([@Sebas3245](https://github.com/Sebas3245))
+- Sl/432/resolve imports and types [#5](https://github.com/selsa-inube/auth/pull/5) ([@Sebas3245](https://github.com/Sebas3245))
+- sl/432/resolve-imports-and-types [#4](https://github.com/selsa-inube/auth/pull/4) ([@Sebas3245](https://github.com/Sebas3245))
+
+#### ⚠️ Pushed to `main`
+
+- feat: added peer dependencies ([@Sebas3245](https://github.com/Sebas3245))
+- 1.0.5 ([@Sebas3245](https://github.com/Sebas3245))
+- feat: added autorc ([@Sebas3245](https://github.com/Sebas3245))
+- refactor: last version in changelog ([@Sebas3245](https://github.com/Sebas3245))
+- feat: added rollup options ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.0.5 (Mon Nov 27 2023)
 
 #### 🐛 Bug Fix
