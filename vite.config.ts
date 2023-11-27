@@ -13,7 +13,7 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
       name: "auth",
-      fileName: "index.js",
+      fileName: "index",
     },
   },
   plugins: [react(), vitesconfigPaths(), dts()],
