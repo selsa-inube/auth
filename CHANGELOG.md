@@ -1,3 +1,15 @@
+# v1.0.8 (Mon Dec 18 2023)
+
+#### 🐛 Bug Fix
+
+- refactor(context): change session storage to local storage ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.0.7 (Mon Nov 27 2023)
 
 #### ⚠️ Pushed to `main`

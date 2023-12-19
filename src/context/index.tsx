@@ -38,7 +38,7 @@ function AuthProvider(props: AuthProviderProps) {
   const [user, setUser] = useState<IUser>();
 
   useEffect(() => {
-    const savedUser = sessionStorage.getItem("user");
+    const savedUser = localStorage.getItem("user");
 
     if (savedUser) {
       setUser(JSON.parse(savedUser));
@@ -60,7 +60,7 @@ function AuthProvider(props: AuthProviderProps) {
     if (!user) return;
 
     setUser(user);
-    sessionStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("user", JSON.stringify(user));
 
     setIsAuthenticated(true);
     setIsLoading(false);
@@ -69,7 +69,7 @@ function AuthProvider(props: AuthProviderProps) {
   }, [user, authorizationParams.redirectUri]);
 
   const logout = useCallback(() => {
-    sessionStorage.removeItem("user");
+    localStorage.removeItem("user");
     setUser(undefined);
     setIsAuthenticated(false);
   }, []);
