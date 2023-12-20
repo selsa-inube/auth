@@ -1,3 +1,19 @@
+# v1.0.9 (Wed Dec 20 2023)
+
+#### 💥 Breaking Change
+
+- sl/503/refactor-storage-to-local [#7](https://github.com/selsa-inube/auth/pull/7) ([@Sebas3245](https://github.com/Sebas3245))
+
+#### ⚠️ Pushed to `main`
+
+- feat: update package lock ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.0.8 (Mon Dec 18 2023)
 
 #### 🐛 Bug Fix
