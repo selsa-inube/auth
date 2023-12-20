@@ -20,6 +20,8 @@ npm install --save @inube/auth
 - realm: The authentication realm.
 - authorizationParams: Additional parameters for authentication.
 
+Note: Save this values in env variables
+
 ## Usage
 
 ```tsx
