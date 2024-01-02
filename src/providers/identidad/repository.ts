@@ -1,5 +1,5 @@
-import { IUser } from "src/types/user";
 import {
+  ISessionData,
   getAccessToken,
   getAuthorizationCode,
   requestAuthorizationCode,
@@ -8,7 +8,7 @@ import {
 
 const loginWithRedirect = async (
   options: Record<string, any>
-): Promise<IUser | undefined> => {
+): Promise<ISessionData | undefined> => {
   const { clientId, clientSecret, realm, authorizationParams } = options;
 
   if (!clientSecret || !realm) return;
@@ -21,7 +21,7 @@ const loginWithRedirect = async (
     return;
   }
 
-  const accessToken = await getAccessToken(
+  const accessTokenResponse = await getAccessToken(
     authorizationCode,
     clientId,
     clientSecret,
@@ -29,13 +29,19 @@ const loginWithRedirect = async (
     redirectUri
   );
 
-  if (!accessToken) return;
+  if (!accessTokenResponse) return;
 
-  const verificationData = await verifyAccessToken(accessToken.token, realm);
+  const sessionData = await verifyAccessToken(
+    accessTokenResponse.accessToken,
+    realm
+  );
 
-  if (!verificationData) return;
+  if (!sessionData) return;
 
-  return verificationData.user;
+  return {
+    ...sessionData,
+    refreshToken: accessTokenResponse.refreshToken,
+  };
 };
 
 const identidadRepository = {

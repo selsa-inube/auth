@@ -1,9 +1,9 @@
-import { IUser } from "src/types/user";
+import { ISessionData } from "./identidad/authorization";
 
 interface IProviderRepository {
   loginWithRedirect: (
     options: Record<string, any>
-  ) => Promise<IUser | undefined>;
+  ) => Promise<ISessionData | undefined>;
 }
 
 export type { IProviderRepository };

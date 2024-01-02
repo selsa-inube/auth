@@ -1,6 +1,6 @@
 import { IUser } from "src/types/user";
-import { generateCodeChallengePair, generateState } from "../../utils/codes";
 import { getAuthorizationCode } from "src/utils/params";
+import { generateCodeChallengePair, generateState } from "../../utils/codes";
 
 const SERVICE_URL =
   "https://odin.selsacloud.com/linix/v7/da77663b-eeaf-42a0-a093-5efbdb1e54d2/servicio/identidad";
@@ -54,7 +54,7 @@ const requestAuthorizationCode = async (
 };
 
 interface IAccessTokenResponse {
-  token: string;
+  accessToken: string;
   tokenType: number;
   expiresIn: string;
   refreshToken: string;
@@ -99,7 +99,7 @@ const getAccessToken = async (
       data.realm
     ) {
       const accessTokenResponse: IAccessTokenResponse = {
-        token: data.access_token,
+        accessToken: data.access_token,
         tokenType: data.token_type,
         expiresIn: data.expires_in,
         refreshToken: data.refresh_token,
@@ -113,10 +113,12 @@ const getAccessToken = async (
   }
 };
 
-interface IVerifyAccessTokenResponse {
-  expireIn: number;
+interface ISessionData {
+  expiresIn: number;
   idSesion: string;
+  accessToken: string;
   user: IUser;
+  refreshToken?: string;
 }
 
 const verifyAccessToken = async (accessToken: string, realm: string) => {
@@ -132,9 +134,10 @@ const verifyAccessToken = async (accessToken: string, realm: string) => {
     const data = await res.json();
 
     if (data.expires_in && data.idSesion && data.usuario) {
-      const verifyAccessTokenResponse: IVerifyAccessTokenResponse = {
-        expireIn: data.expires_in,
+      const sessionData: ISessionData = {
+        expiresIn: data.expires_in,
         idSesion: data.idSesion,
+        accessToken,
         user: {
           id: data.usuario.id,
           company: data.usuario.repositorio,
@@ -145,10 +148,89 @@ const verifyAccessToken = async (accessToken: string, realm: string) => {
           secondLastName: data.usuario.segundoApellido,
           identification: data.usuario.identificacion,
           phone: data.usuario.telefonoMovil,
+          type: data.usuario.tipo,
         },
       };
 
-      return verifyAccessTokenResponse;
+      return sessionData;
+    }
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
+
+interface IRefreshTokenResponse {
+  accessToken: string;
+  tokenType: number;
+  expiresIn: string;
+  refreshToken: string;
+  realm: string;
+}
+
+const refreshAccessToken = async (
+  accessToken: string,
+  realm: string,
+  clientId: string,
+  clientSecret: string,
+  refreshToken: string
+) => {
+  try {
+    const bodyParams = new URLSearchParams();
+    bodyParams.append("client_id", clientId);
+    bodyParams.append("grant_type", "refresh_token");
+    bodyParams.append("refresh_token", refreshToken);
+    bodyParams.append("client_secret", clientSecret);
+
+    const res = await fetch(`${SERVICE_URL}/oauth2/token/${realm}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: bodyParams.toString(),
+    });
+
+    const data = await res.json();
+
+    if (data.access_token) {
+      const refreshTokenResponse: IRefreshTokenResponse = {
+        expiresIn: data.expires_in,
+        accessToken: data.access_token,
+        tokenType: data.token_type,
+        refreshToken: data.refresh_token,
+        realm: data.realm,
+      };
+
+      return refreshTokenResponse;
+    }
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
+
+interface IRevokeTokenResponse {
+  accessToken: string;
+}
+
+const revokeAccessToken = async (accessToken: string, realm: string) => {
+  try {
+    const res = await fetch(`${SERVICE_URL}/oauth2/token/${realm}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `1/${accessToken}`,
+      },
+    });
+
+    const data = await res.json();
+
+    if (data.access_token) {
+      const revokeTokenResponse: IRevokeTokenResponse = {
+        accessToken: data.access_token,
+      };
+
+      return revokeTokenResponse;
     }
   } catch (error) {
     console.error("Error:", error);
@@ -158,6 +240,10 @@ const verifyAccessToken = async (accessToken: string, realm: string) => {
 export {
   getAccessToken,
   getAuthorizationCode,
+  refreshAccessToken,
   requestAuthorizationCode,
+  revokeAccessToken,
   verifyAccessToken,
 };
+
+export type { ISessionData };

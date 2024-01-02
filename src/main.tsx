@@ -1,4 +1,3 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import { AuthProvider } from "./context/index.tsx";
@@ -12,18 +11,16 @@ const IS_PRODUCTION = import.meta.env.PROD;
 const REDIRECT_URI = IS_PRODUCTION ? window.location.origin : AUTH_REDIRECT_URI;
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <AuthProvider
-      provider={PROVIDER}
-      clientId={CLIENT_ID}
-      clientSecret={CLIENT_SECRET}
-      realm={REALM}
-      authorizationParams={{
-        redirectUri: REDIRECT_URI,
-        scope: [],
-      }}
-    >
-      <App />
-    </AuthProvider>
-  </React.StrictMode>
+  <AuthProvider
+    provider={PROVIDER}
+    clientId={CLIENT_ID}
+    clientSecret={CLIENT_SECRET}
+    realm={REALM}
+    authorizationParams={{
+      redirectUri: REDIRECT_URI,
+      scope: [],
+    }}
+  >
+    <App />
+  </AuthProvider>
 );
