@@ -1,3 +1,15 @@
+# v1.0.11 (Tue Jan 02 2024)
+
+#### ⚠️ Pushed to `main`
+
+- feat(context): added refreh and revoke token ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.0.10 (Wed Dec 20 2023)
 
 #### ⚠️ Pushed to `main`

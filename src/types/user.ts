@@ -8,6 +8,7 @@ interface IUser {
   email: string;
   phone: string;
   company: string;
+  type: string;
   operator?: {
     name: string;
     logo: string;
