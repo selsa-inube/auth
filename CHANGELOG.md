@@ -1,3 +1,19 @@
+# v1.0.12 (Fri Jan 05 2024)
+
+#### 💥 Breaking Change
+
+- sl/523/refresh-revoke-token [#8](https://github.com/selsa-inube/auth/pull/8) ([@Sebas3245](https://github.com/Sebas3245))
+
+#### ⚠️ Pushed to `main`
+
+- feat(context): wait for refresh token ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.0.11 (Tue Jan 02 2024)
 
 #### ⚠️ Pushed to `main`
