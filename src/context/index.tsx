@@ -84,8 +84,9 @@ function AuthProvider(props: AuthProviderProps) {
 
   useEffect(() => {
     loadUserFromStorage();
-    refreshTokens();
-    setIsLoading(false);
+    refreshTokens().then(() => {
+      setIsLoading(false);
+    });
 
     return setupRefreshInterval();
   }, []);
