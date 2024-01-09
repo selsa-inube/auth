@@ -52,8 +52,10 @@ function AuthProvider(props: AuthProviderProps) {
   };
 
   const refreshTokens = async () => {
-    const savedAccessToken = localStorage.getItem("accessToken");
+    let savedAccessToken = localStorage.getItem("accessToken");
     const refreshToken = localStorage.getItem("refreshToken");
+
+    savedAccessToken && setAccessToken(savedAccessToken);
 
     if (savedAccessToken && realm && clientSecret && refreshToken) {
       const refreshTokenResponse = await refreshAccessToken(
@@ -66,11 +68,11 @@ function AuthProvider(props: AuthProviderProps) {
 
       if (!refreshTokenResponse) return;
 
+      setAccessToken(refreshTokenResponse.accessToken);
+
       localStorage.setItem("accessToken", refreshTokenResponse.accessToken);
       localStorage.setItem("refreshToken", refreshTokenResponse.refreshToken);
       localStorage.setItem("expiresIn", refreshTokenResponse.expiresIn);
-
-      setAccessToken(refreshTokenResponse.accessToken);
     }
   };
 
