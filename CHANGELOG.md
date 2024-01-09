@@ -1,3 +1,15 @@
+# v1.0.13 (Tue Jan 09 2024)
+
+#### ⚠️ Pushed to `main`
+
+- fix: patch access token assign ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.0.12 (Fri Jan 05 2024)
 
 #### 💥 Breaking Change
