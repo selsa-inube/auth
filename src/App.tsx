@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useAuth } from "./hooks/useAuth";
 
 function App() {
-  const { user, loginWithRedirect, isAuthenticated, isLoading, logout } =
+  const { user, isAuthenticated, isLoading, loginWithRedirect, logout } =
     useAuth();
 
   useEffect(() => {
