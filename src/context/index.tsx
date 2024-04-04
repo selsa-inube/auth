@@ -51,6 +51,7 @@ function AuthProvider(props: AuthProviderProps) {
       setUser(JSON.parse(savedUser));
       setIsAuthenticated(true);
     }
+    setIsLoading(false);
   };
 
   const refreshTokens = async () => {
@@ -88,9 +89,6 @@ function AuthProvider(props: AuthProviderProps) {
 
   useEffect(() => {
     loadUserFromStorage();
-    refreshTokens().then(() => {
-      setIsLoading(false);
-    });
 
     return setupRefreshInterval();
   }, []);
@@ -124,7 +122,7 @@ function AuthProvider(props: AuthProviderProps) {
     window && window.location.replace(authorizationParams.redirectUri);
   }, [user, authorizationParams.redirectUri]);
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(() => {
     if (accessToken && realm) {
       revokeAccessToken(accessToken, realm);
     }
@@ -134,6 +132,7 @@ function AuthProvider(props: AuthProviderProps) {
     setUser(undefined);
     setAccessToken(undefined);
     setIsAuthenticated(false);
+    setIsLoading(false);
   }, [accessToken]);
 
   const authContext = useMemo(
