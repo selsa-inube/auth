@@ -11,9 +11,11 @@ import {
   revokeAccessToken,
 } from "src/providers/identidad/authorization";
 import { IUser } from "src/types/user";
+import { getAuthStorage } from "./config/storage";
 import { IAuthContext } from "./types";
 
 const AuthContext = createContext<IAuthContext>({} as IAuthContext);
+const authStorage = getAuthStorage();
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -43,7 +45,7 @@ function AuthProvider(props: AuthProviderProps) {
   const [accessToken, setAccessToken] = useState<string>();
 
   const loadUserFromStorage = () => {
-    const savedUser = localStorage.getItem("user");
+    const savedUser = authStorage.getItem("user");
 
     if (savedUser) {
       setUser(JSON.parse(savedUser));
@@ -53,8 +55,8 @@ function AuthProvider(props: AuthProviderProps) {
   };
 
   const refreshTokens = async () => {
-    let savedAccessToken = localStorage.getItem("accessToken");
-    const refreshToken = localStorage.getItem("refreshToken");
+    let savedAccessToken = authStorage.getItem("accessToken");
+    const refreshToken = authStorage.getItem("refreshToken");
 
     savedAccessToken && setAccessToken(savedAccessToken);
 
@@ -71,16 +73,16 @@ function AuthProvider(props: AuthProviderProps) {
 
       setAccessToken(refreshTokenResponse.accessToken);
 
-      localStorage.setItem("accessToken", refreshTokenResponse.accessToken);
-      localStorage.setItem("refreshToken", refreshTokenResponse.refreshToken);
-      localStorage.setItem("expiresIn", refreshTokenResponse.expiresIn);
+      authStorage.setItem("accessToken", refreshTokenResponse.accessToken);
+      authStorage.setItem("refreshToken", refreshTokenResponse.refreshToken);
+      authStorage.setItem("expiresIn", refreshTokenResponse.expiresIn);
     }
   };
 
   const setupRefreshInterval = () => {
     const interval = setInterval(
       refreshTokens,
-      Number(localStorage.getItem("expiresIn")) / 2
+      Number(authStorage.getItem("expiresIn")) / 2
     );
     return () => clearInterval(interval);
   };
@@ -106,15 +108,12 @@ function AuthProvider(props: AuthProviderProps) {
     setUser(sessionData.user);
     setAccessToken(sessionData.accessToken);
 
-    localStorage.setItem("user", JSON.stringify(sessionData.user));
-    localStorage.setItem(
-      "accessToken",
-      JSON.stringify(sessionData.accessToken)
-    );
+    authStorage.setItem("user", JSON.stringify(sessionData.user));
+    authStorage.setItem("accessToken", JSON.stringify(sessionData.accessToken));
 
     if (sessionData.refreshToken) {
-      localStorage.setItem("refreshToken", sessionData.refreshToken);
-      localStorage.setItem("expiresIn", JSON.stringify(sessionData.expiresIn));
+      authStorage.setItem("refreshToken", sessionData.refreshToken);
+      authStorage.setItem("expiresIn", JSON.stringify(sessionData.expiresIn));
     }
 
     setIsAuthenticated(true);
@@ -128,8 +127,8 @@ function AuthProvider(props: AuthProviderProps) {
       revokeAccessToken(accessToken, realm);
     }
 
-    localStorage.removeItem("user");
-    localStorage.removeItem("accessToken");
+    authStorage.removeItem("user");
+    authStorage.removeItem("accessToken");
     setUser(undefined);
     setAccessToken(undefined);
     setIsAuthenticated(false);
