@@ -1,3 +1,15 @@
+# v1.0.14 (Wed Apr 03 2024)
+
+#### ⚠️ Pushed to `main`
+
+- refactor(authProvider): change time for refresh token ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.0.13 (Tue Jan 09 2024)
 
 #### ⚠️ Pushed to `main`
