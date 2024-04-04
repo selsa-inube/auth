@@ -1,3 +1,21 @@
+# v1.0.15 (Thu Apr 04 2024)
+
+#### 🐛 Bug Fix
+
+- sl/868/refactor-refresh-token [#9](https://github.com/selsa-inube/auth/pull/9) ([@Sebas3245](https://github.com/Sebas3245))
+- refactor(authProvider): choose storage type ([@Sebas3245](https://github.com/Sebas3245))
+
+#### ⚠️ Pushed to `main`
+
+- Merge branch 'main' of https://github.com/selsa-inube/auth into sl/866/choose-storage-type (jsebastianlara3245@gmail.com)
+
+#### Authors: 2
+
+- Juan Sebastian Lara (jsebastianlara3245@gmail.com)
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.0.14 (Wed Apr 03 2024)
 
 #### ⚠️ Pushed to `main`
