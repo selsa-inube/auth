@@ -1,3 +1,19 @@
+# v1.0.16 (Fri Apr 05 2024)
+
+#### 🐛 Bug Fix
+
+- sl/866/choose-storage-type [#10](https://github.com/selsa-inube/auth/pull/10) ([@Sebas3245](https://github.com/Sebas3245))
+
+#### ⚠️ Pushed to `main`
+
+- refactor: change set states ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.0.15 (Thu Apr 04 2024)
 
 #### 🐛 Bug Fix
