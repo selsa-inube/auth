@@ -46,16 +46,18 @@ function AuthProvider(props: AuthProviderProps) {
 
   const loadUserFromStorage = () => {
     const savedUser = authStorage.getItem("user");
+    const savedAccessToken = authStorage.getItem("accessToken");
 
-    if (savedUser) {
+    if (savedUser && savedAccessToken) {
       setUser(JSON.parse(savedUser));
       setIsAuthenticated(true);
+      setAccessToken(savedAccessToken);
     }
     setIsLoading(false);
   };
 
   const refreshTokens = async () => {
-    let savedAccessToken = authStorage.getItem("accessToken");
+    const savedAccessToken = authStorage.getItem("accessToken");
     const refreshToken = authStorage.getItem("refreshToken");
 
     savedAccessToken && setAccessToken(savedAccessToken);
@@ -105,9 +107,6 @@ function AuthProvider(props: AuthProviderProps) {
 
     if (!sessionData) return;
 
-    setUser(sessionData.user);
-    setAccessToken(sessionData.accessToken);
-
     authStorage.setItem("user", JSON.stringify(sessionData.user));
     authStorage.setItem("accessToken", JSON.stringify(sessionData.accessToken));
 
@@ -115,9 +114,6 @@ function AuthProvider(props: AuthProviderProps) {
       authStorage.setItem("refreshToken", sessionData.refreshToken);
       authStorage.setItem("expiresIn", JSON.stringify(sessionData.expiresIn));
     }
-
-    setIsAuthenticated(true);
-    setIsLoading(false);
 
     window && window.location.replace(authorizationParams.redirectUri);
   }, [user, authorizationParams.redirectUri]);
