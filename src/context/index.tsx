@@ -15,7 +15,6 @@ import { getAuthStorage } from "./config/storage";
 import { IAuthContext } from "./types";
 
 const AuthContext = createContext<IAuthContext>({} as IAuthContext);
-const authStorage = getAuthStorage();
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -27,6 +26,7 @@ interface AuthProviderProps {
     redirectUri: string;
     scope: string[];
   };
+  isProduction?: boolean;
 }
 
 function AuthProvider(props: AuthProviderProps) {
@@ -37,12 +37,17 @@ function AuthProvider(props: AuthProviderProps) {
     realm,
     authorizationParams,
     provider,
+    isProduction,
   } = props;
 
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<IUser>();
   const [accessToken, setAccessToken] = useState<string>();
+
+  const authStorage = useMemo(() => {
+    return getAuthStorage(isProduction);
+  }, [isProduction]);
 
   const loadUserFromStorage = () => {
     const savedUser = authStorage.getItem("user");

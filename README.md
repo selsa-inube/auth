@@ -45,6 +45,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       clientSecret={CLIENT_SECRET}
       realm={REALM}
       authorizationParams={{ redirectUri: REDIRECT_URI, scope: [] }}
+      isProduction={IS_PRODUCTION}
     >
       <App />
     </AuthProvider>

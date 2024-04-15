@@ -1,7 +1,5 @@
-const IS_PRODUCTION = import.meta.env.PROD;
-
-const getAuthStorage = () => {
-  if (IS_PRODUCTION) {
+const getAuthStorage = (isProduction?: boolean) => {
+  if (isProduction) {
     return sessionStorage;
   }
 
