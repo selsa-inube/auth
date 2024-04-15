@@ -1,3 +1,15 @@
+# v1.0.17 (Mon Apr 15 2024)
+
+#### ⚠️ Pushed to `main`
+
+- feat(storage): change storage strategy (jsebastianlara3245@gmail.com)
+
+#### Authors: 1
+
+- Juan Sebastian Lara (jsebastianlara3245@gmail.com)
+
+---
+
 # v1.0.16 (Fri Apr 05 2024)
 
 #### 🐛 Bug Fix
