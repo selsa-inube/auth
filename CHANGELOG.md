@@ -2,6 +2,19 @@
 
 #### ⚠️ Pushed to `main`
 
+- refactor: remove quotas in token ([@Sebas3245](https://github.com/Sebas3245))
+- docs: add sequence diagram ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
+# v1.0.18 (Tue Oct 01 2024)
+
+#### ⚠️ Pushed to `main`
+
 - docs: add sequence diagram ([@Sebas3245](https://github.com/Sebas3245))
 
 #### Authors: 1
