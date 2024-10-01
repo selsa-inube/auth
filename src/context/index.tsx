@@ -113,11 +113,11 @@ function AuthProvider(props: AuthProviderProps) {
     if (!sessionData) return;
 
     authStorage.setItem("user", JSON.stringify(sessionData.user));
-    authStorage.setItem("accessToken", JSON.stringify(sessionData.accessToken));
+    authStorage.setItem("accessToken", sessionData.accessToken);
 
     if (sessionData.refreshToken) {
       authStorage.setItem("refreshToken", sessionData.refreshToken);
-      authStorage.setItem("expiresIn", JSON.stringify(sessionData.expiresIn));
+      authStorage.setItem("expiresIn", sessionData.expiresIn.toString());
     }
 
     window && window.location.replace(authorizationParams.redirectUri);
