@@ -27,6 +27,9 @@ interface AuthProviderProps {
     scope: string[];
   };
   isProduction?: boolean;
+  withSignOutTimeout?: boolean;
+  signOutTimeout?: number;
+  redirectUrlOnTimeout?: string;
 }
 
 function AuthProvider(props: AuthProviderProps) {
@@ -38,12 +41,18 @@ function AuthProvider(props: AuthProviderProps) {
     authorizationParams,
     provider,
     isProduction,
+    withSignOutTimeout,
+    signOutTimeout: initialTimeout,
+    redirectUrlOnTimeout,
   } = props;
 
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<IUser>();
   const [accessToken, setAccessToken] = useState<string>();
+  const [signOutTimeout] = useState<number | undefined>(
+    initialTimeout ? Number(initialTimeout) : undefined
+  );
 
   const authStorage = useMemo(() => {
     return getAuthStorage(isProduction);
@@ -100,6 +109,18 @@ function AuthProvider(props: AuthProviderProps) {
     return setupRefreshInterval();
   }, []);
 
+  useEffect(() => {
+    if (withSignOutTimeout && signOutTimeout && signOutTimeout > 0) {
+      const logoutTimer = setTimeout(() => {
+        if (redirectUrlOnTimeout) {
+          window.location.href = redirectUrlOnTimeout;
+        }
+      }, signOutTimeout);
+
+      return () => clearTimeout(logoutTimer);
+    }
+  }, [signOutTimeout, withSignOutTimeout]);
+
   const loginWithRedirect = useCallback(async () => {
     const selectedProvider = getProvider(provider);
 
@@ -142,7 +163,6 @@ function AuthProvider(props: AuthProviderProps) {
       accessToken,
       isLoading,
       isAuthenticated,
-
       loginWithRedirect,
       logout,
     }),
