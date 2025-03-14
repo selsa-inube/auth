@@ -4,6 +4,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useRef,
 } from "react";
 import { getProvider } from "src/providers/factory";
 import {
@@ -30,6 +31,11 @@ interface AuthProviderProps {
   withSignOutTimeout?: boolean;
   signOutTimeout?: number;
   redirectUrlOnTimeout?: string;
+  resetSignOutMouseMove?: boolean;
+  resetSignOutKeyDown?: boolean;
+  resetSignOutMouseDown?: boolean;
+  resetSignOutScroll?: boolean;
+  resetSignOutTouchStart?: boolean;
 }
 
 function AuthProvider(props: AuthProviderProps) {
@@ -44,6 +50,11 @@ function AuthProvider(props: AuthProviderProps) {
     withSignOutTimeout,
     signOutTimeout: initialTimeout,
     redirectUrlOnTimeout,
+    resetSignOutMouseMove = false,
+    resetSignOutKeyDown = false,
+    resetSignOutMouseDown = false,
+    resetSignOutScroll = false,
+    resetSignOutTouchStart = false,
   } = props;
 
   const [isLoading, setIsLoading] = useState(true);
@@ -53,6 +64,7 @@ function AuthProvider(props: AuthProviderProps) {
   const [signOutTimeout] = useState<number | undefined>(
     initialTimeout ? Number(initialTimeout) : undefined
   );
+  const timeoutRef = useRef<NodeJS.Timeout>();
 
   const authStorage = useMemo(() => {
     return getAuthStorage(isProduction);
@@ -105,21 +117,63 @@ function AuthProvider(props: AuthProviderProps) {
 
   useEffect(() => {
     loadUserFromStorage();
-
     return setupRefreshInterval();
   }, []);
 
-  useEffect(() => {
-    if (withSignOutTimeout && signOutTimeout && signOutTimeout > 0) {
-      const logoutTimer = setTimeout(() => {
-        if (redirectUrlOnTimeout) {
+  const resetLogoutTimer = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    if (signOutTimeout && redirectUrlOnTimeout) {
+      timeoutRef.current = setTimeout(() => {
+        if (!window.location.href.includes(redirectUrlOnTimeout)) {
           window.location.href = redirectUrlOnTimeout;
         }
       }, signOutTimeout);
-
-      return () => clearTimeout(logoutTimer);
     }
-  }, [signOutTimeout, withSignOutTimeout]);
+  }, [signOutTimeout, redirectUrlOnTimeout, window.location.href]);
+
+  useEffect(() => {
+    if (withSignOutTimeout && signOutTimeout && signOutTimeout > 0) {
+      resetLogoutTimer();
+
+      const eventConfig = [
+        { event: "mousemove", flag: resetSignOutMouseMove },
+        { event: "keydown", flag: resetSignOutKeyDown },
+        { event: "mousedown", flag: resetSignOutMouseDown },
+        { event: "scroll", flag: resetSignOutScroll },
+        { event: "touchstart", flag: resetSignOutTouchStart },
+      ];
+
+      eventConfig.forEach(({ event, flag }) => {
+        if (flag) {
+          window.addEventListener(event, resetLogoutTimer);
+        }
+      });
+
+      return () => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+
+        eventConfig.forEach(({ event, flag }) => {
+          if (flag) {
+            window.removeEventListener(event, resetLogoutTimer);
+          }
+        });
+      };
+    }
+  }, [
+    signOutTimeout,
+    withSignOutTimeout,
+    resetSignOutMouseMove,
+    resetSignOutKeyDown,
+    resetSignOutMouseDown,
+    resetSignOutScroll,
+    resetSignOutTouchStart,
+    resetLogoutTimer,
+  ]);
 
   const loginWithRedirect = useCallback(async () => {
     const selectedProvider = getProvider(provider);
@@ -141,7 +195,7 @@ function AuthProvider(props: AuthProviderProps) {
       authStorage.setItem("expiresIn", sessionData.expiresIn.toString());
     }
 
-    window && window.location.replace(authorizationParams.redirectUri);
+    window?.location.replace(authorizationParams.redirectUri);
   }, [user, authorizationParams.redirectUri]);
 
   const logout = useCallback(() => {
@@ -163,10 +217,21 @@ function AuthProvider(props: AuthProviderProps) {
       accessToken,
       isLoading,
       isAuthenticated,
+      resetSignOutScroll,
       loginWithRedirect,
       logout,
+      resetLogoutTimer,
     }),
-    [user, accessToken, isLoading, isAuthenticated, loginWithRedirect, logout]
+    [
+      user,
+      accessToken,
+      isLoading,
+      isAuthenticated,
+      resetSignOutScroll,
+      loginWithRedirect,
+      logout,
+      resetLogoutTimer,
+    ]
   );
 
   return (
