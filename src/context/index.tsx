@@ -4,6 +4,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useRef,
 } from "react";
 import { getProvider } from "src/providers/factory";
 import {
@@ -13,7 +14,11 @@ import {
 import { IUser } from "src/types/user";
 import { getAuthStorage } from "./config/storage";
 import { IAuthContext } from "./types";
-import { useSignOutTimeout } from "./utils";
+import {
+  calculateRemainingTime,
+  setupEventListeners,
+  checkElementExistence,
+} from "./utils";
 
 const AuthContext = createContext<IAuthContext>({} as IAuthContext);
 
@@ -67,28 +72,82 @@ function AuthProvider(props: AuthProviderProps) {
   const [signOutTimeout] = useState<number | undefined>(
     initialTimeout ? Number(initialTimeout) : undefined
   );
+  const [remainingSignOutTime, setRemainingSignOutTime] = useState<number>();
 
   const authStorage = useMemo(() => {
     return getAuthStorage(isProduction);
   }, [isProduction]);
+
+  const timeoutRef = useRef<NodeJS.Timeout>();
+  const intervalRef = useRef<NodeJS.Timeout>();
+  const startTimeRef = useRef<number>();
 
   const handleSessionExpired = useCallback(() => {
     authStorage.setItem("sessionExpired", "true");
     setIsSessionExpired(true);
   }, [authStorage]);
 
-  const { remainingSignOutTime } = useSignOutTimeout({
+  const resetLogoutTimer = useCallback(() => {
+    timeoutRef.current && clearTimeout(timeoutRef.current);
+    intervalRef.current && clearInterval(intervalRef.current);
+
+    if (signOutTimeout && redirectUrlOnTimeout) {
+      startTimeRef.current = Date.now();
+      setRemainingSignOutTime(signOutTimeout);
+
+      timeoutRef.current = setTimeout(() => {
+        handleSessionExpired();
+        if (!window.location.href.includes(redirectUrlOnTimeout)) {
+          window.location.href = redirectUrlOnTimeout;
+        }
+      }, signOutTimeout);
+
+      intervalRef.current = setInterval(() => {
+        const newRemaining = calculateRemainingTime(
+          startTimeRef.current,
+          signOutTimeout
+        );
+        setRemainingSignOutTime(newRemaining);
+
+        if (newRemaining <= 0) {
+          intervalRef.current && clearInterval(intervalRef.current);
+        }
+      }, 1000);
+    }
+  }, [signOutTimeout, redirectUrlOnTimeout, handleSessionExpired]);
+
+  useEffect(() => {
+    if (withSignOutTimeout && signOutTimeout && signOutTimeout > 0) {
+      const cleanUpListeners = setupEventListeners({
+        resetSignOutMouseMove,
+        resetSignOutKeyDown,
+        resetSignOutMouseDown,
+        resetSignOutScroll,
+        resetSignOutTouchStart,
+        callback: resetLogoutTimer,
+      });
+
+      if (resetSignOutScroll && rootId) {
+        const elementChecker = checkElementExistence(rootId, resetLogoutTimer);
+        return () => {
+          cleanUpListeners();
+          elementChecker();
+        };
+      }
+
+      return cleanUpListeners;
+    }
+  }, [
     withSignOutTimeout,
     signOutTimeout,
-    redirectUrlOnTimeout,
     resetSignOutMouseMove,
     resetSignOutKeyDown,
     resetSignOutMouseDown,
     resetSignOutScroll,
     resetSignOutTouchStart,
+    resetLogoutTimer,
     rootId,
-    onSessionExpired: handleSessionExpired,
-  });
+  ]);
 
   const loadUserFromStorage = () => {
     const savedUser = authStorage.getItem("user");
@@ -167,7 +226,14 @@ function AuthProvider(props: AuthProviderProps) {
     }
 
     window?.location.replace(authorizationParams.redirectUri);
-  }, [provider, clientId, clientSecret, realm, authorizationParams, authStorage]);
+  }, [
+    provider,
+    clientId,
+    clientSecret,
+    realm,
+    authorizationParams,
+    authStorage,
+  ]);
 
   const logout = useCallback(() => {
     if (accessToken && realm) {
@@ -193,7 +259,7 @@ function AuthProvider(props: AuthProviderProps) {
       loginWithRedirect,
       logout,
       remainingSignOutTime,
-      isSessionExpired: isSessionExpired,
+      isSessionExpired,
     }),
     [
       user,
