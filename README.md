@@ -14,11 +14,22 @@ npm install --save @inube/auth
 
 ### AuthProvider Props:
 
-- provider: The authentication provider (e.g., "identidad").
-- clientId: The client ID for authentication.
-- clientSecret: The client secret for authentication.
-- realm: The authentication realm.
-- authorizationParams: Additional parameters for authentication.
+- clientId: Id of client
+- clientSecret: Secret of client
+- realm: Realm of client
+- provider: Provider of client (e.g. "identidad")
+- authorizationParams: Authorization parameters
+  - redirectUri: Redirect URI when authentication is successful
+  - scope: Scope
+- isProduction: Is production environment, define for deciding which storage to use dev = localStorage, prod = sessionStorage
+- withSignOutTimeout: With sign out in timeout
+- signOutTime: Sign out time in milliseconds
+- redirectUrlOnTimeout: Redirect URL on timeout
+- resetSignOutMouseMove: Reset sign out on mouse move
+- resetSignOutKeyDown: Reset sign out on key down
+- resetSignOutMouseDown: Reset sign out on mouse down
+- resetSignOutScroll: Reset sign out on scroll
+- resetSignOutTouchStart: Reset sign out on touch start
 
 Note: Save this values in env variables
 

@@ -91,7 +91,6 @@ const getAccessToken = async (
     });
 
     const data = await res.json();
-
     if (
       data.access_token &&
       data.token_type &&
