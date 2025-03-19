@@ -30,6 +30,7 @@ npm install --save @inube/auth
 - resetSignOutMouseDown: Reset sign out on mouse down
 - resetSignOutScroll: Reset sign out on scroll
 - resetSignOutTouchStart: Reset sign out on touch start
+- signOutCritialPaths: This routes will reset the sign out timer
 
 Note: Save this values in env variables
 

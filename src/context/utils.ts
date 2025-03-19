@@ -69,6 +69,7 @@ const resetSignOutTimer = (
   signOutTime: number | undefined,
   redirectUrlOnTimeout: string | undefined,
   remainingSignOutTime: number,
+  signOutCritialPaths: string[] | undefined,
   setRemainingSignOutTime: React.Dispatch<React.SetStateAction<number>>,
   logout: (isTimeout: boolean) => void
 ) => {
@@ -77,9 +78,17 @@ const resetSignOutTimer = (
 
   if (withSignOutTimeout && signOutTime && redirectUrlOnTimeout) {
     signOutTimeoutRef.current = setTimeout(() => {
+      if (
+        signOutCritialPaths?.some((path) =>
+          window.location.pathname.includes(path)
+        )
+      )
+        return;
+
       if (!window.location.href.includes(redirectUrlOnTimeout)) {
         authRedirect(redirectUrlOnTimeout);
       }
+
       logout(true);
     }, signOutTime);
 
@@ -106,6 +115,7 @@ const setupSignOutEvents = (
   resetSignOutMouseDown: boolean,
   resetSignOutScroll: boolean,
   resetSignOutTouchStart: boolean,
+  signOutCritialPaths: string[] | undefined,
   setRemainingSignOutTime: React.Dispatch<React.SetStateAction<number>>,
   logout: (isTimeout: boolean) => void
 ) => {
@@ -117,6 +127,7 @@ const setupSignOutEvents = (
       signOutTime,
       redirectUrlOnTimeout,
       remainingSignOutTime,
+      signOutCritialPaths,
       setRemainingSignOutTime,
       logout
     );

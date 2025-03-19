@@ -40,6 +40,7 @@ interface AuthProviderProps {
   resetSignOutMouseDown?: boolean; // Reset sign out on mouse down
   resetSignOutScroll?: boolean; // Reset sign out on scroll
   resetSignOutTouchStart?: boolean; // Reset sign out on touch start
+  signOutCritialPaths?: string[]; // This routes will reset the sign out timer
 }
 
 function AuthProvider(props: AuthProviderProps) {
@@ -59,6 +60,7 @@ function AuthProvider(props: AuthProviderProps) {
     resetSignOutMouseDown = false,
     resetSignOutScroll = false,
     resetSignOutTouchStart = false,
+    signOutCritialPaths,
   } = props;
 
   const [isLoading, setIsLoading] = useState(true);
@@ -170,6 +172,7 @@ function AuthProvider(props: AuthProviderProps) {
       signOutTime,
       redirectUrlOnTimeout,
       remainingSignOutTime,
+      signOutCritialPaths,
       setRemainingSignOutTime,
       logout
     );
@@ -186,6 +189,7 @@ function AuthProvider(props: AuthProviderProps) {
       resetSignOutMouseDown,
       resetSignOutScroll,
       resetSignOutTouchStart,
+      signOutCritialPaths,
       setRemainingSignOutTime,
       logout
     );
