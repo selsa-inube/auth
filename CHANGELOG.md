@@ -1,3 +1,15 @@
+# v1.1.1 (Wed Mar 19 2025)
+
+#### ⚠️ Pushed to `main`
+
+- feat: added critial paths ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.1.0 (Wed Mar 19 2025)
 
 #### 💥 Breaking Change
