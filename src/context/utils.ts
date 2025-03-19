@@ -18,8 +18,6 @@ const utilValidateSession = async (
     authorizationParams,
   });
 
-  window.history.replaceState({}, document.title, window.location.pathname);
-
   if (!sessionData) return;
 
   authStorage.setItem("user", JSON.stringify(sessionData.user));

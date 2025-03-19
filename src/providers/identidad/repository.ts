@@ -29,10 +29,9 @@ const validateSession = async (options: Record<string, any>) => {
 
   const { authorizationCode, state } = getAuthorizationCode();
 
-  if (!authorizationCode || !state) {
-    loginWithRedirect(options);
-    return;
-  }
+  if (!authorizationCode || !state) return;
+
+  window.history.replaceState({}, document.title, window.location.pathname);
 
   const accessTokenResponse = await getAccessToken(
     authorizationCode,

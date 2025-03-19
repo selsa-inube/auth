@@ -71,13 +71,14 @@ function AuthProvider(props: AuthProviderProps) {
   );
   const signOutTimeoutRef = useRef<NodeJS.Timeout>();
   const signOutIntervalRef = useRef<NodeJS.Timeout>();
+  const tokenIsFetched = useRef(false);
 
   const authStorage = useMemo(() => {
     return getAuthStorage(isProduction);
   }, [isProduction]);
 
   const loadUserFromStorage = async () => {
-    if (isAuthenticated || !isLoading) return;
+    if (tokenIsFetched.current) return;
 
     let savedUser: IUser | undefined;
     let savedAccessToken: string | undefined;
@@ -91,6 +92,8 @@ function AuthProvider(props: AuthProviderProps) {
       : undefined;
 
     if (!savedUser || !savedAccessToken) {
+      tokenIsFetched.current = true;
+
       const sessionData = await utilValidateSession(
         provider,
         clientId,
@@ -99,7 +102,6 @@ function AuthProvider(props: AuthProviderProps) {
         authorizationParams,
         authStorage
       );
-      if (!sessionData) return;
 
       savedUser = sessionData?.user;
       savedAccessToken = sessionData?.accessToken;
