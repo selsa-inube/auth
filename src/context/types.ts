@@ -5,6 +5,8 @@ interface IAuthContext {
   accessToken?: string;
   isLoading: boolean;
   isAuthenticated: boolean;
+  remainingSignOutTime?: number;
+  isSessionExpired?: boolean;
 
   loginWithRedirect: () => void;
   logout: () => void;

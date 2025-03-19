@@ -1,3 +1,23 @@
+# v1.1.0 (Wed Mar 19 2025)
+
+#### 💥 Breaking Change
+
+- Jlara/139 [#12](https://github.com/selsa-inube/auth/pull/12) ([@Sebas3245](https://github.com/Sebas3245))
+
+#### 🐛 Bug Fix
+
+- feat(autoSingout): adjust utils file ([@CristianRojas-47](https://github.com/CristianRojas-47))
+- feat(autoSingout): adjust functionalities and create attributes ([@CristianRojas-47](https://github.com/CristianRojas-47))
+- feat(autoSingout): add events props ([@CristianRojas-47](https://github.com/CristianRojas-47))
+- feat(autoSingout): add withSignOutTimeout, signOutTimeout and redirectUrlOnTimeout props ([@CristianRojas-47](https://github.com/CristianRojas-47))
+
+#### Authors: 2
+
+- Cristian Rojas ([@CristianRojas-47](https://github.com/CristianRojas-47))
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.0.18 (Tue Oct 01 2024)
 
 #### ⚠️ Pushed to `main`

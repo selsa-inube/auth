@@ -1,5 +1,4 @@
 import {
-  ISessionData,
   getAccessToken,
   getAuthorizationCode,
   requestAuthorizationCode,
@@ -8,18 +7,31 @@ import {
 
 const loginWithRedirect = async (
   options: Record<string, any>
-): Promise<ISessionData | undefined> => {
+): Promise<void> => {
   const { clientId, clientSecret, realm, authorizationParams } = options;
 
   if (!clientSecret || !realm) return;
 
   const { redirectUri, scope } = authorizationParams;
+
+  await requestAuthorizationCode(
+    clientId,
+    clientSecret,
+    realm,
+    redirectUri,
+    scope
+  );
+};
+
+const validateSession = async (options: Record<string, any>) => {
+  const { clientId, clientSecret, realm, authorizationParams } = options;
+  const { redirectUri } = authorizationParams;
+
   const { authorizationCode, state } = getAuthorizationCode();
 
-  if (!authorizationCode || !state) {
-    requestAuthorizationCode(clientId, clientSecret, realm, redirectUri, scope);
-    return;
-  }
+  if (!authorizationCode || !state) return;
+
+  window.history.replaceState({}, document.title, window.location.pathname);
 
   const accessTokenResponse = await getAccessToken(
     authorizationCode,
@@ -46,6 +58,7 @@ const loginWithRedirect = async (
 
 const identidadRepository = {
   loginWithRedirect,
+  validateSession,
 };
 
 export { identidadRepository };

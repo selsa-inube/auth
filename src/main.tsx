@@ -10,6 +10,15 @@ const AUTH_REDIRECT_URI = import.meta.env.VITE_AUTH_REDIRECT_URI;
 const IS_PRODUCTION = import.meta.env.PROD;
 const REDIRECT_URI = IS_PRODUCTION ? window.location.origin : AUTH_REDIRECT_URI;
 
+const WITH_AUTO_SIGNOUT = import.meta.env.VITE_WITH_AUTO_SIGNOUT;
+const TIMEOUT = import.meta.env.VITE_TIMEOUT;
+const SIGNOUT_REDIRECT_URL = import.meta.env.VITE_SIGNOUT_REDIRECT_URL;
+const WITH_SIGNOUT_MOUSE_MOVE = import.meta.env.VITE_WITH_SIGNOUT_MOUSE_MOVE;
+const WITH_SIGNOUT_KEY_DOWN = import.meta.env.VITE_WITH_SIGNOUT_KEY_DOWN;
+const WITH_SIGNOUT_MOUSE_DOWN = import.meta.env.VITE_WITH_SIGNOUT_MOUSE_DOWN;
+const WITH_SIGNOUT_SCROLL = import.meta.env.VITE_WITH_SIGNOUT_SCROLL;
+const WITH_SIGNOUT_TOUCHSTART = import.meta.env.VITE_WITH_SIGNOUT_TOUCHSTART;
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <AuthProvider
     provider={PROVIDER}
@@ -20,6 +29,14 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       redirectUri: REDIRECT_URI,
       scope: [],
     }}
+    withSignOutTimeout={WITH_AUTO_SIGNOUT}
+    signOutTime={TIMEOUT}
+    redirectUrlOnTimeout={SIGNOUT_REDIRECT_URL}
+    resetSignOutMouseMove={WITH_SIGNOUT_MOUSE_MOVE}
+    resetSignOutKeyDown={WITH_SIGNOUT_KEY_DOWN}
+    resetSignOutMouseDown={WITH_SIGNOUT_MOUSE_DOWN}
+    resetSignOutScroll={WITH_SIGNOUT_SCROLL}
+    resetSignOutTouchStart={WITH_SIGNOUT_TOUCHSTART}
   >
     <App />
   </AuthProvider>
