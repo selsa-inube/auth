@@ -1,69 +1,186 @@
-type EventConfig = {
-  resetSignOutMouseMove: boolean;
-  resetSignOutKeyDown: boolean;
-  resetSignOutMouseDown: boolean;
-  resetSignOutScroll: boolean;
-  resetSignOutTouchStart: boolean;
-  callback: () => void;
-};
+import { getProvider } from "src/providers/factory";
+import { refreshAccessToken } from "src/providers/identidad/authorization";
 
-const calculateRemainingTime = (
-  startTime: number | undefined,
-  timeout: number
-): number => {
-  if (!startTime) return timeout;
-  const elapsed = Date.now() - startTime;
-  return Math.max(timeout - elapsed, 0);
-};
+const utilValidateSession = async (
+  provider: string,
+  clientId: string,
+  clientSecret: string | undefined,
+  realm: string | undefined,
+  authorizationParams: { redirectUri: string; scope: string[] },
+  authStorage: Storage
+) => {
+  const selectedProvider = getProvider(provider);
 
-const setupEventListeners = ({
-  resetSignOutMouseMove,
-  resetSignOutKeyDown,
-  resetSignOutMouseDown,
-  resetSignOutScroll,
-  resetSignOutTouchStart,
-  callback,
-}: EventConfig) => {
-  const eventConfig = [
-    { event: "mousemove" as const, flag: resetSignOutMouseMove },
-    { event: "keydown" as const, flag: resetSignOutKeyDown },
-    { event: "mousedown" as const, flag: resetSignOutMouseDown },
-    { event: "scroll" as const, flag: resetSignOutScroll },
-    { event: "touchstart" as const, flag: resetSignOutTouchStart },
-  ];
-
-  eventConfig.forEach(({ event, flag }) => {
-    if (flag) {
-      window.addEventListener(event, callback);
-    }
+  const sessionData = await selectedProvider.validateSession({
+    clientId,
+    clientSecret,
+    realm,
+    authorizationParams,
   });
 
-  return () => {
-    eventConfig.forEach(({ event, flag }) => {
-      if (flag) {
-        window.removeEventListener(event, callback);
+  if (!sessionData) return;
+
+  authStorage.setItem("user", JSON.stringify(sessionData.user));
+  authStorage.setItem("accessToken", sessionData.accessToken);
+
+  if (sessionData.refreshToken) {
+    authStorage.setItem("refreshToken", sessionData.refreshToken);
+    authStorage.setItem("expiresIn", sessionData.expiresIn.toString());
+  }
+
+  return sessionData;
+};
+
+const refreshTokens = async (
+  setAccessToken: React.Dispatch<React.SetStateAction<string | undefined>>,
+  realm: string | undefined,
+  clientId: string,
+  clientSecret: string | undefined,
+  authStorage: Storage
+) => {
+  const savedAccessToken = authStorage.getItem("accessToken");
+  const refreshToken = authStorage.getItem("refreshToken");
+
+  savedAccessToken && setAccessToken(savedAccessToken);
+
+  if (savedAccessToken && realm && clientSecret && refreshToken) {
+    const refreshTokenResponse = await refreshAccessToken(
+      savedAccessToken,
+      realm,
+      clientId,
+      clientSecret,
+      refreshToken
+    );
+
+    if (!refreshTokenResponse) return;
+
+    setAccessToken(refreshTokenResponse.accessToken);
+
+    authStorage.setItem("accessToken", refreshTokenResponse.accessToken);
+    authStorage.setItem("refreshToken", refreshTokenResponse.refreshToken);
+    authStorage.setItem("expiresIn", refreshTokenResponse.expiresIn);
+  }
+};
+
+const resetSignOutTimer = (
+  signOutTimeoutRef: React.MutableRefObject<NodeJS.Timeout | undefined>,
+  signOutIntervalRef: React.MutableRefObject<NodeJS.Timeout | undefined>,
+  withSignOutTimeout: boolean,
+  signOutTime: number | undefined,
+  redirectUrlOnTimeout: string | undefined,
+  remainingSignOutTime: number,
+  setRemainingSignOutTime: React.Dispatch<React.SetStateAction<number>>,
+  logout: (isTimeout: boolean) => void
+) => {
+  signOutTimeoutRef.current && clearTimeout(signOutTimeoutRef.current);
+  signOutIntervalRef.current && clearInterval(signOutIntervalRef.current);
+
+  if (withSignOutTimeout && signOutTime && redirectUrlOnTimeout) {
+    signOutTimeoutRef.current = setTimeout(() => {
+      if (!window.location.href.includes(redirectUrlOnTimeout)) {
+        authRedirect(redirectUrlOnTimeout);
+      }
+      logout(true);
+    }, signOutTime);
+
+    signOutIntervalRef.current = setInterval(() => {
+      const newRemaining = remainingSignOutTime - 1000;
+      setRemainingSignOutTime(newRemaining);
+
+      if (newRemaining <= 0) {
+        signOutIntervalRef && clearInterval(signOutIntervalRef.current);
+      }
+    }, 1000);
+  }
+};
+
+const setupSignOutEvents = (
+  withSignOutTimeout: boolean,
+  signOutTime: number | undefined,
+  signOutTimeoutRef: React.MutableRefObject<NodeJS.Timeout | undefined>,
+  signOutIntervalRef: React.MutableRefObject<NodeJS.Timeout | undefined>,
+  redirectUrlOnTimeout: string | undefined,
+  remainingSignOutTime: number,
+  resetSignOutMouseMove: boolean,
+  resetSignOutKeyDown: boolean,
+  resetSignOutMouseDown: boolean,
+  resetSignOutScroll: boolean,
+  resetSignOutTouchStart: boolean,
+  setRemainingSignOutTime: React.Dispatch<React.SetStateAction<number>>,
+  logout: (isTimeout: boolean) => void
+) => {
+  const resetTimer = () =>
+    resetSignOutTimer(
+      signOutTimeoutRef,
+      signOutIntervalRef,
+      withSignOutTimeout,
+      signOutTime,
+      redirectUrlOnTimeout,
+      remainingSignOutTime,
+      setRemainingSignOutTime,
+      logout
+    );
+
+  const eventsConfig = [
+    { event: "mousemove", active: resetSignOutMouseMove },
+    { event: "keydown", active: resetSignOutKeyDown },
+    { event: "mousedown", active: resetSignOutMouseDown },
+    { event: "scroll", active: resetSignOutScroll },
+    { event: "touchstart", active: resetSignOutTouchStart },
+  ];
+
+  let observer: MutationObserver;
+
+  if (withSignOutTimeout && signOutTime) {
+    eventsConfig.forEach(({ event, active }) => {
+      if (active) {
+        window.addEventListener(event, resetTimer, { passive: true });
       }
     });
-  };
-};
 
-const checkElementExistence = (rootId: string, callback: () => void) => {
-  let scrollCleanUp: () => void;
+    if (resetSignOutScroll) {
+      observer = new MutationObserver(() => {
+        document.querySelectorAll("*").forEach((el) => {
+          if (
+            el.scrollHeight > el.clientHeight ||
+            el.scrollWidth > el.clientWidth
+          ) {
+            el.addEventListener("scroll", resetTimer, { passive: true });
+          }
+        });
+      });
 
-  const interval = setInterval(() => {
-    const element = document.getElementById(rootId);
-    if (element) {
-      const handleScroll = () => callback();
-      element.addEventListener("scroll", handleScroll);
-      scrollCleanUp = () => element.removeEventListener("scroll", handleScroll);
-      clearInterval(interval);
+      observer.observe(document.body, { childList: true, subtree: true });
     }
-  }, 500);
+  }
 
   return () => {
-    clearInterval(interval);
-    scrollCleanUp?.();
+    eventsConfig.forEach(({ event, active }) => {
+      if (active) {
+        window.removeEventListener(event, resetTimer);
+      }
+    });
+
+    if (resetSignOutScroll) {
+      observer?.disconnect();
+      document.querySelectorAll("*").forEach((el) => {
+        el.removeEventListener("scroll", resetTimer);
+      });
+    }
   };
 };
 
-export { calculateRemainingTime, setupEventListeners, checkElementExistence };
+const authRedirect = (url: string) => {
+  if (window === undefined) return;
+
+  window.history.pushState({}, "", url);
+  window.dispatchEvent(new PopStateEvent("popstate"));
+};
+
+export {
+  authRedirect,
+  refreshTokens,
+  resetSignOutTimer,
+  setupSignOutEvents,
+  utilValidateSession,
+};

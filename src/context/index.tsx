@@ -3,45 +3,43 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useState,
   useRef,
+  useState,
 } from "react";
 import { getProvider } from "src/providers/factory";
-import {
-  refreshAccessToken,
-  revokeAccessToken,
-} from "src/providers/identidad/authorization";
+import { revokeAccessToken } from "src/providers/identidad/authorization";
 import { IUser } from "src/types/user";
 import { getAuthStorage } from "./config/storage";
 import { IAuthContext } from "./types";
 import {
-  calculateRemainingTime,
-  setupEventListeners,
-  checkElementExistence,
+  refreshTokens,
+  resetSignOutTimer,
+  setupSignOutEvents,
+  utilValidateSession,
 } from "./utils";
 
 const AuthContext = createContext<IAuthContext>({} as IAuthContext);
 
 interface AuthProviderProps {
-  children: React.ReactNode;
-  clientId: string;
-  clientSecret?: string;
-  realm?: string;
-  provider: string;
+  children: React.ReactNode; // ReactNode is a type that represents anything that can be rendered in React
+  clientId: string; // Id of client
+  clientSecret?: string; // Secret of client
+  realm?: string; // Realm of client
+  provider: string; // Provider of client (e.g. "identidad")
   authorizationParams: {
-    redirectUri: string;
-    scope: string[];
+    // Authorization parameters
+    redirectUri: string; // Redirect URI when authentication is successful
+    scope: string[]; // Scope
   };
-  isProduction?: boolean;
-  withSignOutTimeout?: boolean;
-  signOutTimeout?: number;
-  redirectUrlOnTimeout?: string;
-  resetSignOutMouseMove?: boolean;
-  resetSignOutKeyDown?: boolean;
-  resetSignOutMouseDown?: boolean;
-  resetSignOutScroll?: boolean;
-  resetSignOutTouchStart?: boolean;
-  rootId?: string;
+  isProduction?: boolean; // Is production environment, define for deciding which storage to use dev = localStorage, prod = sessionStorage
+  withSignOutTimeout?: boolean; // With sign out in timeout
+  signOutTime?: number; // Sign out time
+  redirectUrlOnTimeout?: string; // Redirect URL on timeout
+  resetSignOutMouseMove?: boolean; // Reset sign out on mouse move
+  resetSignOutKeyDown?: boolean; // Reset sign out on key down
+  resetSignOutMouseDown?: boolean; // Reset sign out on mouse down
+  resetSignOutScroll?: boolean; // Reset sign out on scroll
+  resetSignOutTouchStart?: boolean; // Reset sign out on touch start
 }
 
 function AuthProvider(props: AuthProviderProps) {
@@ -54,14 +52,13 @@ function AuthProvider(props: AuthProviderProps) {
     provider,
     isProduction,
     withSignOutTimeout,
-    signOutTimeout: initialTimeout,
+    signOutTime,
     redirectUrlOnTimeout,
     resetSignOutMouseMove = false,
     resetSignOutKeyDown = false,
     resetSignOutMouseDown = false,
     resetSignOutScroll = false,
     resetSignOutTouchStart = false,
-    rootId,
   } = props;
 
   const [isLoading, setIsLoading] = useState(true);
@@ -69,163 +66,73 @@ function AuthProvider(props: AuthProviderProps) {
   const [user, setUser] = useState<IUser>();
   const [accessToken, setAccessToken] = useState<string>();
   const [isSessionExpired, setIsSessionExpired] = useState(false);
-  const [signOutTimeout] = useState<number | undefined>(
-    initialTimeout ? Number(initialTimeout) : undefined
+  const [remainingSignOutTime, setRemainingSignOutTime] = useState<number>(
+    signOutTime || 0
   );
-  const [remainingSignOutTime, setRemainingSignOutTime] = useState<number>();
+  const signOutTimeoutRef = useRef<NodeJS.Timeout>();
+  const signOutIntervalRef = useRef<NodeJS.Timeout>();
+  const tokenIsFetched = useRef(false);
 
   const authStorage = useMemo(() => {
     return getAuthStorage(isProduction);
   }, [isProduction]);
 
-  const timeoutRef = useRef<NodeJS.Timeout>();
-  const intervalRef = useRef<NodeJS.Timeout>();
-  const startTimeRef = useRef<number>();
+  const loadUserFromStorage = async () => {
+    if (tokenIsFetched.current) return;
 
-  const handleSessionExpired = useCallback(() => {
-    authStorage.setItem("sessionExpired", "true");
-    setIsSessionExpired(true);
-  }, [authStorage]);
+    let savedUser: IUser | undefined;
+    let savedAccessToken: string | undefined;
 
-  const resetLogoutTimer = useCallback(() => {
-    timeoutRef.current && clearTimeout(timeoutRef.current);
-    intervalRef.current && clearInterval(intervalRef.current);
+    savedUser = authStorage.getItem("user")
+      ? JSON.parse(authStorage.getItem("user") as string)
+      : undefined;
 
-    if (signOutTimeout && redirectUrlOnTimeout) {
-      startTimeRef.current = Date.now();
-      setRemainingSignOutTime(signOutTimeout);
+    savedAccessToken = authStorage.getItem("accessToken")
+      ? (authStorage.getItem("accessToken") as string)
+      : undefined;
 
-      timeoutRef.current = setTimeout(() => {
-        handleSessionExpired();
-        if (!window.location.href.includes(redirectUrlOnTimeout)) {
-          window.location.href = redirectUrlOnTimeout;
-        }
-      }, signOutTimeout);
+    if (!savedUser || !savedAccessToken) {
+      tokenIsFetched.current = true;
 
-      intervalRef.current = setInterval(() => {
-        const newRemaining = calculateRemainingTime(
-          startTimeRef.current,
-          signOutTimeout
-        );
-        setRemainingSignOutTime(newRemaining);
+      const sessionData = await utilValidateSession(
+        provider,
+        clientId,
+        clientSecret,
+        realm,
+        authorizationParams,
+        authStorage
+      );
 
-        if (newRemaining <= 0) {
-          intervalRef.current && clearInterval(intervalRef.current);
-        }
-      }, 1000);
-    }
-  }, [signOutTimeout, redirectUrlOnTimeout, handleSessionExpired]);
-
-  useEffect(() => {
-    if (withSignOutTimeout && signOutTimeout && signOutTimeout > 0) {
-      const cleanUpListeners = setupEventListeners({
-        resetSignOutMouseMove,
-        resetSignOutKeyDown,
-        resetSignOutMouseDown,
-        resetSignOutScroll,
-        resetSignOutTouchStart,
-        callback: resetLogoutTimer,
-      });
-
-      if (resetSignOutScroll && rootId) {
-        const elementChecker = checkElementExistence(rootId, resetLogoutTimer);
-        return () => {
-          cleanUpListeners();
-          elementChecker();
-        };
-      }
-
-      return cleanUpListeners;
-    }
-  }, [
-    withSignOutTimeout,
-    signOutTimeout,
-    resetSignOutMouseMove,
-    resetSignOutKeyDown,
-    resetSignOutMouseDown,
-    resetSignOutScroll,
-    resetSignOutTouchStart,
-    resetLogoutTimer,
-    rootId,
-  ]);
-
-  const loadUserFromStorage = () => {
-    const savedUser = authStorage.getItem("user");
-    const savedAccessToken = authStorage.getItem("accessToken");
-    const sessionExpired = authStorage.getItem("sessionExpired");
-
-    if (sessionExpired === "true") {
-      setIsSessionExpired(true);
-      authStorage.removeItem("sessionExpired");
+      savedUser = sessionData?.user;
+      savedAccessToken = sessionData?.accessToken;
     }
 
     if (savedUser && savedAccessToken) {
-      setUser(JSON.parse(savedUser));
-      setIsAuthenticated(true);
+      setUser(savedUser);
       setAccessToken(savedAccessToken);
+      setIsAuthenticated(true);
     }
+
     setIsLoading(false);
   };
 
-  const refreshTokens = async () => {
-    const savedAccessToken = authStorage.getItem("accessToken");
-    const refreshToken = authStorage.getItem("refreshToken");
-
-    savedAccessToken && setAccessToken(savedAccessToken);
-
-    if (savedAccessToken && realm && clientSecret && refreshToken) {
-      const refreshTokenResponse = await refreshAccessToken(
-        savedAccessToken,
-        realm,
-        clientId,
-        clientSecret,
-        refreshToken
-      );
-
-      if (!refreshTokenResponse) return;
-
-      setAccessToken(refreshTokenResponse.accessToken);
-
-      authStorage.setItem("accessToken", refreshTokenResponse.accessToken);
-      authStorage.setItem("refreshToken", refreshTokenResponse.refreshToken);
-      authStorage.setItem("expiresIn", refreshTokenResponse.expiresIn);
-    }
-  };
-
   const setupRefreshInterval = () => {
-    const interval = setInterval(
-      refreshTokens,
-      Number(authStorage.getItem("expiresIn")) / 2
-    );
+    const interval = setInterval(() => {
+      refreshTokens(setAccessToken, realm, clientId, clientSecret, authStorage);
+    }, Number(authStorage.getItem("expiresIn")) / 2);
+
     return () => clearInterval(interval);
   };
-
-  useEffect(() => {
-    loadUserFromStorage();
-    return setupRefreshInterval();
-  }, []);
 
   const loginWithRedirect = useCallback(async () => {
     const selectedProvider = getProvider(provider);
 
-    const sessionData = await selectedProvider.loginWithRedirect({
+    await selectedProvider.loginWithRedirect({
       clientId,
       clientSecret,
       realm,
       authorizationParams,
     });
-
-    if (!sessionData) return;
-
-    authStorage.setItem("user", JSON.stringify(sessionData.user));
-    authStorage.setItem("accessToken", sessionData.accessToken);
-
-    if (sessionData.refreshToken) {
-      authStorage.setItem("refreshToken", sessionData.refreshToken);
-      authStorage.setItem("expiresIn", sessionData.expiresIn.toString());
-    }
-
-    window?.location.replace(authorizationParams.redirectUri);
   }, [
     provider,
     clientId,
@@ -235,20 +142,60 @@ function AuthProvider(props: AuthProviderProps) {
     authStorage,
   ]);
 
-  const logout = useCallback(() => {
-    if (accessToken && realm) {
-      revokeAccessToken(accessToken, realm);
-    }
+  const logout = useCallback(
+    (sessionExpired?: boolean) => {
+      if (accessToken && realm) {
+        revokeAccessToken(accessToken, realm);
+      }
 
-    authStorage.removeItem("user");
-    authStorage.removeItem("accessToken");
-    authStorage.removeItem("sessionExpired");
-    setUser(undefined);
-    setAccessToken(undefined);
-    setIsAuthenticated(false);
-    setIsSessionExpired(false);
-    setIsLoading(false);
-  }, [accessToken, realm, authStorage]);
+      if (sessionExpired) {
+        setIsSessionExpired(true);
+      }
+
+      authStorage.removeItem("user");
+      authStorage.removeItem("accessToken");
+      setUser(undefined);
+      setAccessToken(undefined);
+      setIsAuthenticated(false);
+      setIsLoading(false);
+    },
+    [accessToken, realm, authStorage]
+  );
+
+  useEffect(() => {
+    resetSignOutTimer(
+      signOutTimeoutRef,
+      signOutIntervalRef,
+      withSignOutTimeout || false,
+      signOutTime,
+      redirectUrlOnTimeout,
+      remainingSignOutTime,
+      setRemainingSignOutTime,
+      logout
+    );
+
+    return setupSignOutEvents(
+      withSignOutTimeout || false,
+      signOutTime,
+      signOutTimeoutRef,
+      signOutIntervalRef,
+      redirectUrlOnTimeout,
+      remainingSignOutTime,
+      resetSignOutMouseMove,
+      resetSignOutKeyDown,
+      resetSignOutMouseDown,
+      resetSignOutScroll,
+      resetSignOutTouchStart,
+      setRemainingSignOutTime,
+      logout
+    );
+  }, []);
+
+  useEffect(() => {
+    loadUserFromStorage();
+
+    return setupRefreshInterval();
+  }, []);
 
   const authContext = useMemo(
     () => ({
@@ -256,20 +203,20 @@ function AuthProvider(props: AuthProviderProps) {
       accessToken,
       isLoading,
       isAuthenticated,
-      loginWithRedirect,
-      logout,
       remainingSignOutTime,
       isSessionExpired,
+      loginWithRedirect,
+      logout,
     }),
     [
       user,
       accessToken,
       isLoading,
       isAuthenticated,
-      loginWithRedirect,
-      logout,
       remainingSignOutTime,
       isSessionExpired,
+      loginWithRedirect,
+      logout,
     ]
   );
 
