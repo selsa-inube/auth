@@ -1,3 +1,15 @@
+# v1.1.2 (Thu Mar 20 2025)
+
+#### ⚠️ Pushed to `main`
+
+- feat: added reset timeout by change page ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.1.1 (Wed Mar 19 2025)
 
 #### ⚠️ Pushed to `main`
