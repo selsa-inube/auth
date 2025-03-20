@@ -18,6 +18,7 @@ const WITH_SIGNOUT_KEY_DOWN = import.meta.env.VITE_WITH_SIGNOUT_KEY_DOWN;
 const WITH_SIGNOUT_MOUSE_DOWN = import.meta.env.VITE_WITH_SIGNOUT_MOUSE_DOWN;
 const WITH_SIGNOUT_SCROLL = import.meta.env.VITE_WITH_SIGNOUT_SCROLL;
 const WITH_SIGNOUT_TOUCHSTART = import.meta.env.VITE_WITH_SIGNOUT_TOUCHSTART;
+const WITH_SIGNOUT_CHANGE_PAGE = import.meta.env.VITE_WITH_SIGNOUT_CHANGE_PAGE;
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <AuthProvider
@@ -37,6 +38,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     resetSignOutMouseDown={WITH_SIGNOUT_MOUSE_DOWN}
     resetSignOutScroll={WITH_SIGNOUT_SCROLL}
     resetSignOutTouchStart={WITH_SIGNOUT_TOUCHSTART}
+    resetSignOutChangePage={WITH_SIGNOUT_CHANGE_PAGE}
   >
     <App />
   </AuthProvider>

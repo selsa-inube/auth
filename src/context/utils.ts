@@ -77,6 +77,7 @@ const resetSignOutTimer = (
   signOutIntervalRef.current && clearInterval(signOutIntervalRef.current);
 
   if (withSignOutTimeout && signOutTime && redirectUrlOnTimeout) {
+    console.log("reset timeout");
     signOutTimeoutRef.current = setTimeout(() => {
       if (
         signOutCritialPaths?.some((path) =>
@@ -115,6 +116,7 @@ const setupSignOutEvents = (
   resetSignOutMouseDown: boolean,
   resetSignOutScroll: boolean,
   resetSignOutTouchStart: boolean,
+  resetSignOutChangePage: boolean,
   signOutCritialPaths: string[] | undefined,
   setRemainingSignOutTime: React.Dispatch<React.SetStateAction<number>>,
   logout: (isTimeout: boolean) => void
@@ -138,9 +140,11 @@ const setupSignOutEvents = (
     { event: "mousedown", active: resetSignOutMouseDown },
     { event: "scroll", active: resetSignOutScroll },
     { event: "touchstart", active: resetSignOutTouchStart },
+    { event: "popstate", active: resetSignOutChangePage },
   ];
 
   let observer: MutationObserver;
+  let restoreHistory: (() => void) | null = null;
 
   if (withSignOutTimeout && signOutTime) {
     eventsConfig.forEach(({ event, active }) => {
@@ -163,6 +167,28 @@ const setupSignOutEvents = (
 
       observer.observe(document.body, { childList: true, subtree: true });
     }
+
+    if (resetSignOutChangePage) {
+      const originalPushState = history.pushState;
+      const originalReplaceState = history.replaceState;
+
+      const handleHistoryChange = () => resetTimer();
+
+      history.pushState = function (...args) {
+        originalPushState.apply(this, args);
+        handleHistoryChange();
+      };
+
+      history.replaceState = function (...args) {
+        originalReplaceState.apply(this, args);
+        handleHistoryChange();
+      };
+
+      restoreHistory = () => {
+        history.pushState = originalPushState;
+        history.replaceState = originalReplaceState;
+      };
+    }
   }
 
   return () => {
@@ -177,6 +203,10 @@ const setupSignOutEvents = (
       document.querySelectorAll("*").forEach((el) => {
         el.removeEventListener("scroll", resetTimer);
       });
+    }
+
+    if (restoreHistory) {
+      restoreHistory();
     }
   };
 };

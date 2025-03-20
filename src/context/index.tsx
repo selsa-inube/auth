@@ -40,6 +40,7 @@ interface AuthProviderProps {
   resetSignOutMouseDown?: boolean; // Reset sign out on mouse down
   resetSignOutScroll?: boolean; // Reset sign out on scroll
   resetSignOutTouchStart?: boolean; // Reset sign out on touch start
+  resetSignOutChangePage?: boolean; // Reset sign out on change page
   signOutCritialPaths?: string[]; // This routes will reset the sign out timer
 }
 
@@ -60,6 +61,7 @@ function AuthProvider(props: AuthProviderProps) {
     resetSignOutMouseDown = false,
     resetSignOutScroll = false,
     resetSignOutTouchStart = false,
+    resetSignOutChangePage = false,
     signOutCritialPaths,
   } = props;
 
@@ -189,6 +191,7 @@ function AuthProvider(props: AuthProviderProps) {
       resetSignOutMouseDown,
       resetSignOutScroll,
       resetSignOutTouchStart,
+      resetSignOutChangePage,
       signOutCritialPaths,
       setRemainingSignOutTime,
       logout

@@ -2,6 +2,30 @@
 
 This is a [React](https://reactjs.org/) and [Vite](https://vitejs.dev/) component library for manage the authentication for @Inube.
 
+## Features
+
+This library use OAuth2 for authentication and authorization. It provides the following features:
+
+- Login with redirect
+- Logout
+- Get access token
+- Refresh access token
+- Get user information
+- Check if user is authenticated
+- Check if user is loading
+- Check if user is expired for sign out
+- Save user information in local storage (dev) or session storage (prod)
+- Sign out in timeout
+  - Reset sign out time on mouse move
+  - Reset sign out time on key down
+  - Reset sign out time on mouse down
+  - Reset sign out time on scroll
+  - Reset sign out time on touch start
+  - Reset sign out time on change page
+  - Reset sign out time on critical paths
+
+Actually, this library is only compatible with 'identidad' provider.
+
 ## Installation
 
 Run the following command using **npm**:
@@ -30,6 +54,7 @@ npm install --save @inube/auth
 - resetSignOutMouseDown: Reset sign out on mouse down
 - resetSignOutScroll: Reset sign out on scroll
 - resetSignOutTouchStart: Reset sign out on touch start
+- resetSignOutChangePage: Reset sign out on change page
 - signOutCritialPaths: This routes will reset the sign out timer
 
 Note: Save this values in env variables
