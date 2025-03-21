@@ -1,3 +1,15 @@
+# v1.1.3 (Fri Mar 21 2025)
+
+#### ⚠️ Pushed to `main`
+
+- fix: refresh correctly tokens ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.1.2 (Thu Mar 20 2025)
 
 #### ⚠️ Pushed to `main`
