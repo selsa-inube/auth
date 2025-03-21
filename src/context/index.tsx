@@ -76,10 +76,31 @@ function AuthProvider(props: AuthProviderProps) {
   const signOutTimeoutRef = useRef<NodeJS.Timeout>();
   const signOutIntervalRef = useRef<NodeJS.Timeout>();
   const tokenIsFetched = useRef(false);
+  const [expiresIn, setExpiresIn] = useState<number>();
 
   const authStorage = useMemo(() => {
     return getAuthStorage(isProduction);
   }, [isProduction]);
+
+  const setupRefreshInterval = () => {
+    if (!expiresIn) return;
+
+    const interval = setInterval(async () => {
+      const tokens = await refreshTokens(
+        realm,
+        clientId,
+        clientSecret,
+        authStorage
+      );
+
+      if (tokens) {
+        setExpiresIn(Number(tokens.expiresIn));
+        setAccessToken(tokens.accessToken);
+      }
+    }, expiresIn / 2);
+
+    return () => clearInterval(interval);
+  };
 
   const loadUserFromStorage = async () => {
     if (tokenIsFetched.current) return;
@@ -107,6 +128,10 @@ function AuthProvider(props: AuthProviderProps) {
         authStorage
       );
 
+      if (sessionData?.expiresIn) {
+        setupRefreshInterval();
+      }
+
       savedUser = sessionData?.user;
       savedAccessToken = sessionData?.accessToken;
     }
@@ -118,14 +143,6 @@ function AuthProvider(props: AuthProviderProps) {
     }
 
     setIsLoading(false);
-  };
-
-  const setupRefreshInterval = () => {
-    const interval = setInterval(() => {
-      refreshTokens(setAccessToken, realm, clientId, clientSecret, authStorage);
-    }, Number(authStorage.getItem("expiresIn")) / 2);
-
-    return () => clearInterval(interval);
   };
 
   const loginWithRedirect = useCallback(async () => {
@@ -201,8 +218,16 @@ function AuthProvider(props: AuthProviderProps) {
   useEffect(() => {
     loadUserFromStorage();
 
-    return setupRefreshInterval();
+    const storedExpiresIn = authStorage.getItem("expiresIn");
+    if (storedExpiresIn) {
+      setExpiresIn(Number(storedExpiresIn));
+    }
   }, []);
+
+  useEffect(() => {
+    const cleanup = setupRefreshInterval();
+    return cleanup;
+  }, [expiresIn]);
 
   const authContext = useMemo(
     () => ({

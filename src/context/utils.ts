@@ -32,7 +32,6 @@ const utilValidateSession = async (
 };
 
 const refreshTokens = async (
-  setAccessToken: React.Dispatch<React.SetStateAction<string | undefined>>,
   realm: string | undefined,
   clientId: string,
   clientSecret: string | undefined,
@@ -40,8 +39,6 @@ const refreshTokens = async (
 ) => {
   const savedAccessToken = authStorage.getItem("accessToken");
   const refreshToken = authStorage.getItem("refreshToken");
-
-  savedAccessToken && setAccessToken(savedAccessToken);
 
   if (savedAccessToken && realm && clientSecret && refreshToken) {
     const refreshTokenResponse = await refreshAccessToken(
@@ -54,11 +51,11 @@ const refreshTokens = async (
 
     if (!refreshTokenResponse) return;
 
-    setAccessToken(refreshTokenResponse.accessToken);
-
     authStorage.setItem("accessToken", refreshTokenResponse.accessToken);
     authStorage.setItem("refreshToken", refreshTokenResponse.refreshToken);
     authStorage.setItem("expiresIn", refreshTokenResponse.expiresIn);
+
+    return refreshTokenResponse;
   }
 };
 
@@ -77,7 +74,6 @@ const resetSignOutTimer = (
   signOutIntervalRef.current && clearInterval(signOutIntervalRef.current);
 
   if (withSignOutTimeout && signOutTime && redirectUrlOnTimeout) {
-    console.log("reset timeout");
     signOutTimeoutRef.current = setTimeout(() => {
       if (
         signOutCritialPaths?.some((path) =>
