@@ -10,12 +10,6 @@
 
 ---
 
-# v1.1.4 (Tue Aug 26 2025)
-
-
-
----
-
 # v1.1.0 (Wed Mar 19 2025)
 
 #### 💥 Breaking Change
