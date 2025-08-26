@@ -63,8 +63,8 @@ const refreshTokens = async (
 };
 
 const resetSignOutTimer = (
-  signOutTimeoutRef: React.MutableRefObject<NodeJS.Timeout | undefined>,
-  signOutIntervalRef: React.MutableRefObject<NodeJS.Timeout | undefined>,
+  signOutTimeoutRef: React.RefObject<NodeJS.Timeout | null>,
+  signOutIntervalRef: React.RefObject<NodeJS.Timeout | null>,
   withSignOutTimeout: boolean,
   signOutTime: number | undefined,
   redirectUrlOnTimeout: string | undefined,
@@ -87,7 +87,7 @@ const resetSignOutTimer = (
       const newRemaining = remainingSignOutTime - 1000;
       setRemainingSignOutTime(newRemaining);
 
-      if (newRemaining <= 0) {
+      if (newRemaining <= 0 && signOutIntervalRef.current) {
         signOutIntervalRef && clearInterval(signOutIntervalRef.current);
       }
     }, 1000);
@@ -97,8 +97,8 @@ const resetSignOutTimer = (
 const setupSignOutEvents = (
   withSignOutTimeout: boolean,
   signOutTime: number | undefined,
-  signOutTimeoutRef: React.MutableRefObject<NodeJS.Timeout | undefined>,
-  signOutIntervalRef: React.MutableRefObject<NodeJS.Timeout | undefined>,
+  signOutTimeoutRef: React.RefObject<NodeJS.Timeout | null>,
+  signOutIntervalRef: React.RefObject<NodeJS.Timeout | null>,
   redirectUrlOnTimeout: string | undefined,
   remainingSignOutTime: number,
   resetSignOutMouseMove: boolean,
