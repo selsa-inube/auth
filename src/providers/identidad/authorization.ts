@@ -245,4 +245,4 @@ export {
   verifyAccessToken,
 };
 
-export type { ISessionData };
+export type { IRefreshTokenResponse, ISessionData };

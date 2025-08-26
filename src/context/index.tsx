@@ -40,6 +40,8 @@ interface AuthProviderProps {
   resetSignOutMouseDown?: boolean; // Reset sign out on mouse down
   resetSignOutScroll?: boolean; // Reset sign out on scroll
   resetSignOutTouchStart?: boolean; // Reset sign out on touch start
+  resetSignOutChangePage?: boolean; // Reset sign out on change page
+  signOutCritialPaths?: string[]; // This routes will reset the sign out timer
 }
 
 function AuthProvider(props: AuthProviderProps) {
@@ -59,6 +61,8 @@ function AuthProvider(props: AuthProviderProps) {
     resetSignOutMouseDown = false,
     resetSignOutScroll = false,
     resetSignOutTouchStart = false,
+    resetSignOutChangePage = false,
+    signOutCritialPaths,
   } = props;
 
   const [isLoading, setIsLoading] = useState(true);
@@ -72,10 +76,31 @@ function AuthProvider(props: AuthProviderProps) {
   const signOutTimeoutRef = useRef<NodeJS.Timeout>(null);
   const signOutIntervalRef = useRef<NodeJS.Timeout>(null);
   const tokenIsFetched = useRef(false);
+  const [expiresIn, setExpiresIn] = useState<number>();
 
   const authStorage = useMemo(() => {
     return getAuthStorage(isProduction);
   }, [isProduction]);
+
+  const setupRefreshInterval = () => {
+    if (!expiresIn) return;
+
+    const interval = setInterval(async () => {
+      const tokens = await refreshTokens(
+        realm,
+        clientId,
+        clientSecret,
+        authStorage
+      );
+
+      if (tokens) {
+        setExpiresIn(Number(tokens.expiresIn));
+        setAccessToken(tokens.accessToken);
+      }
+    }, expiresIn / 2);
+
+    return () => clearInterval(interval);
+  };
 
   const loadUserFromStorage = async () => {
     if (tokenIsFetched.current) return;
@@ -103,6 +128,10 @@ function AuthProvider(props: AuthProviderProps) {
         authStorage
       );
 
+      if (sessionData?.expiresIn) {
+        setupRefreshInterval();
+      }
+
       savedUser = sessionData?.user;
       savedAccessToken = sessionData?.accessToken;
     }
@@ -114,14 +143,6 @@ function AuthProvider(props: AuthProviderProps) {
     }
 
     setIsLoading(false);
-  };
-
-  const setupRefreshInterval = () => {
-    const interval = setInterval(() => {
-      refreshTokens(setAccessToken, realm, clientId, clientSecret, authStorage);
-    }, Number(authStorage.getItem("expiresIn")) / 2);
-
-    return () => clearInterval(interval);
   };
 
   const loginWithRedirect = useCallback(async () => {
@@ -170,6 +191,7 @@ function AuthProvider(props: AuthProviderProps) {
       signOutTime,
       redirectUrlOnTimeout,
       remainingSignOutTime,
+      signOutCritialPaths,
       setRemainingSignOutTime,
       logout
     );
@@ -186,6 +208,8 @@ function AuthProvider(props: AuthProviderProps) {
       resetSignOutMouseDown,
       resetSignOutScroll,
       resetSignOutTouchStart,
+      resetSignOutChangePage,
+      signOutCritialPaths,
       setRemainingSignOutTime,
       logout
     );
@@ -194,8 +218,16 @@ function AuthProvider(props: AuthProviderProps) {
   useEffect(() => {
     loadUserFromStorage();
 
-    return setupRefreshInterval();
+    const storedExpiresIn = authStorage.getItem("expiresIn");
+    if (storedExpiresIn) {
+      setExpiresIn(Number(storedExpiresIn));
+    }
   }, []);
+
+  useEffect(() => {
+    const cleanup = setupRefreshInterval();
+    return cleanup;
+  }, [expiresIn]);
 
   const authContext = useMemo(
     () => ({

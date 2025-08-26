@@ -32,7 +32,6 @@ const utilValidateSession = async (
 };
 
 const refreshTokens = async (
-  setAccessToken: React.Dispatch<React.SetStateAction<string | undefined>>,
   realm: string | undefined,
   clientId: string,
   clientSecret: string | undefined,
@@ -40,8 +39,6 @@ const refreshTokens = async (
 ) => {
   const savedAccessToken = authStorage.getItem("accessToken");
   const refreshToken = authStorage.getItem("refreshToken");
-
-  savedAccessToken && setAccessToken(savedAccessToken);
 
   if (savedAccessToken && realm && clientSecret && refreshToken) {
     const refreshTokenResponse = await refreshAccessToken(
@@ -54,11 +51,11 @@ const refreshTokens = async (
 
     if (!refreshTokenResponse) return;
 
-    setAccessToken(refreshTokenResponse.accessToken);
-
     authStorage.setItem("accessToken", refreshTokenResponse.accessToken);
     authStorage.setItem("refreshToken", refreshTokenResponse.refreshToken);
     authStorage.setItem("expiresIn", refreshTokenResponse.expiresIn);
+
+    return refreshTokenResponse;
   }
 };
 
@@ -69,6 +66,7 @@ const resetSignOutTimer = (
   signOutTime: number | undefined,
   redirectUrlOnTimeout: string | undefined,
   remainingSignOutTime: number,
+  signOutCritialPaths: string[] | undefined,
   setRemainingSignOutTime: React.Dispatch<React.SetStateAction<number>>,
   logout: (isTimeout: boolean) => void
 ) => {
@@ -77,9 +75,17 @@ const resetSignOutTimer = (
 
   if (withSignOutTimeout && signOutTime && redirectUrlOnTimeout) {
     signOutTimeoutRef.current = setTimeout(() => {
+      if (
+        signOutCritialPaths?.some((path) =>
+          window.location.pathname.includes(path)
+        )
+      )
+        return;
+
       if (!window.location.href.includes(redirectUrlOnTimeout)) {
         authRedirect(redirectUrlOnTimeout);
       }
+
       logout(true);
     }, signOutTime);
 
@@ -106,6 +112,8 @@ const setupSignOutEvents = (
   resetSignOutMouseDown: boolean,
   resetSignOutScroll: boolean,
   resetSignOutTouchStart: boolean,
+  resetSignOutChangePage: boolean,
+  signOutCritialPaths: string[] | undefined,
   setRemainingSignOutTime: React.Dispatch<React.SetStateAction<number>>,
   logout: (isTimeout: boolean) => void
 ) => {
@@ -117,6 +125,7 @@ const setupSignOutEvents = (
       signOutTime,
       redirectUrlOnTimeout,
       remainingSignOutTime,
+      signOutCritialPaths,
       setRemainingSignOutTime,
       logout
     );
@@ -127,9 +136,11 @@ const setupSignOutEvents = (
     { event: "mousedown", active: resetSignOutMouseDown },
     { event: "scroll", active: resetSignOutScroll },
     { event: "touchstart", active: resetSignOutTouchStart },
+    { event: "popstate", active: resetSignOutChangePage },
   ];
 
   let observer: MutationObserver;
+  let restoreHistory: (() => void) | null = null;
 
   if (withSignOutTimeout && signOutTime) {
     eventsConfig.forEach(({ event, active }) => {
@@ -152,6 +163,28 @@ const setupSignOutEvents = (
 
       observer.observe(document.body, { childList: true, subtree: true });
     }
+
+    if (resetSignOutChangePage) {
+      const originalPushState = history.pushState;
+      const originalReplaceState = history.replaceState;
+
+      const handleHistoryChange = () => resetTimer();
+
+      history.pushState = function (...args) {
+        originalPushState.apply(this, args);
+        handleHistoryChange();
+      };
+
+      history.replaceState = function (...args) {
+        originalReplaceState.apply(this, args);
+        handleHistoryChange();
+      };
+
+      restoreHistory = () => {
+        history.pushState = originalPushState;
+        history.replaceState = originalReplaceState;
+      };
+    }
   }
 
   return () => {
@@ -166,6 +199,10 @@ const setupSignOutEvents = (
       document.querySelectorAll("*").forEach((el) => {
         el.removeEventListener("scroll", resetTimer);
       });
+    }
+
+    if (restoreHistory) {
+      restoreHistory();
     }
   };
 };
