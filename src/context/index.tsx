@@ -73,8 +73,8 @@ function AuthProvider(props: AuthProviderProps) {
   const [remainingSignOutTime, setRemainingSignOutTime] = useState<number>(
     signOutTime || 0
   );
-  const signOutTimeoutRef = useRef<NodeJS.Timeout>();
-  const signOutIntervalRef = useRef<NodeJS.Timeout>();
+  const signOutTimeoutRef = useRef<NodeJS.Timeout>(null);
+  const signOutIntervalRef = useRef<NodeJS.Timeout>(null);
   const tokenIsFetched = useRef(false);
   const [expiresIn, setExpiresIn] = useState<number>();
 
