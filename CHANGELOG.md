@@ -1,3 +1,27 @@
+# v1.1.5 (Fri Aug 29 2025)
+
+#### 🐛 Bug Fix
+
+- Develop to main [#14](https://github.com/selsa-inube/auth/pull/14) ([@Sebas3245](https://github.com/Sebas3245))
+- Develop to main [#13](https://github.com/selsa-inube/auth/pull/13) ([@CristianRojas-47](https://github.com/CristianRojas-47) [@Sebas3245](https://github.com/Sebas3245))
+
+#### ⚠️ Pushed to `main`
+
+- feat: update correct deeps ([@Sebas3245](https://github.com/Sebas3245))
+- 1.1.3 ([@Sebas3245](https://github.com/Sebas3245))
+- fix: refresh correctly tokens ([@Sebas3245](https://github.com/Sebas3245))
+- 1.1.2 ([@Sebas3245](https://github.com/Sebas3245))
+- feat: added reset timeout by change page ([@Sebas3245](https://github.com/Sebas3245))
+- 1.1.1 ([@Sebas3245](https://github.com/Sebas3245))
+- feat: added critial paths ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 2
+
+- Cristian Rojas ([@CristianRojas-47](https://github.com/CristianRojas-47))
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.1.4 (Tue Aug 26 2025)
 
 #### ⚠️ Pushed to `main`
