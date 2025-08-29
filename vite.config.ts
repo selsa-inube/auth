@@ -1,7 +1,8 @@
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import { defineConfig } from "vite";
-import tsconfigPaths from "vite-tsconfig-paths";
+import dts from "vite-plugin-dts";
+import vitesconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   server: {
@@ -18,5 +19,8 @@ export default defineConfig({
       external: ["react", "react-dom"],
     },
   },
-  plugins: [react(), tsconfigPaths()],
+  resolve: {
+    dedupe: ["react", "react-dom"],
+  },
+  plugins: [react(), vitesconfigPaths(), dts()],
 });
