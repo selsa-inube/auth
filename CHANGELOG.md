@@ -2,6 +2,25 @@
 
 #### 🐛 Bug Fix
 
+- Develop to main [#16](https://github.com/selsa-inube/auth/pull/16) ([@Sebas3245](https://github.com/Sebas3245))
+- Jlara/872 [#15](https://github.com/selsa-inube/auth/pull/15) ([@Sebas3245](https://github.com/Sebas3245))
+- Develop to main [#14](https://github.com/selsa-inube/auth/pull/14) ([@Sebas3245](https://github.com/Sebas3245))
+
+#### ⚠️ Pushed to `main`
+
+- fix: names in v1 identidad ([@Sebas3245](https://github.com/Sebas3245))
+- Merge branch 'develop' of https://github.com/selsa-inube/auth ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
+# v1.1.6 (Fri Oct 24 2025)
+
+#### 🐛 Bug Fix
+
 - Develop to main [#14](https://github.com/selsa-inube/auth/pull/14) ([@Sebas3245](https://github.com/Sebas3245))
 
 #### ⚠️ Pushed to `main`
