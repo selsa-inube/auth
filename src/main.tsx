@@ -28,7 +28,14 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     realm={REALM}
     authorizationParams={{
       redirectUri: REDIRECT_URI,
-      scope: [],
+      scope: [
+        "openid",
+        "email",
+        "profile",
+        "address",
+        "phone",
+        "identityDocument",
+      ],
     }}
     withSignOutTimeout={WITH_AUTO_SIGNOUT}
     signOutTime={TIMEOUT}

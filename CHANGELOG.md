@@ -1,3 +1,20 @@
+# v1.1.6 (Fri Oct 24 2025)
+
+#### 🐛 Bug Fix
+
+- Develop to main [#14](https://github.com/selsa-inube/auth/pull/14) ([@Sebas3245](https://github.com/Sebas3245))
+
+#### ⚠️ Pushed to `main`
+
+- feat: added new identidad version ([@Sebas3245](https://github.com/Sebas3245))
+- Merge branch 'develop' of https://github.com/selsa-inube/auth ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.1.5 (Fri Aug 29 2025)
 
 #### 🐛 Bug Fix

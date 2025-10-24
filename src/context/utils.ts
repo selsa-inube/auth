@@ -1,64 +1,3 @@
-import { getProvider } from "src/providers/factory";
-import { refreshAccessToken } from "src/providers/identidad/authorization";
-
-const utilValidateSession = async (
-  provider: string,
-  clientId: string,
-  clientSecret: string | undefined,
-  realm: string | undefined,
-  authorizationParams: { redirectUri: string; scope: string[] },
-  authStorage: Storage
-) => {
-  const selectedProvider = getProvider(provider);
-
-  const sessionData = await selectedProvider.validateSession({
-    clientId,
-    clientSecret,
-    realm,
-    authorizationParams,
-  });
-
-  if (!sessionData) return;
-
-  authStorage.setItem("user", JSON.stringify(sessionData.user));
-  authStorage.setItem("accessToken", sessionData.accessToken);
-
-  if (sessionData.refreshToken) {
-    authStorage.setItem("refreshToken", sessionData.refreshToken);
-    authStorage.setItem("expiresIn", sessionData.expiresIn.toString());
-  }
-
-  return sessionData;
-};
-
-const refreshTokens = async (
-  realm: string | undefined,
-  clientId: string,
-  clientSecret: string | undefined,
-  authStorage: Storage
-) => {
-  const savedAccessToken = authStorage.getItem("accessToken");
-  const refreshToken = authStorage.getItem("refreshToken");
-
-  if (savedAccessToken && realm && clientSecret && refreshToken) {
-    const refreshTokenResponse = await refreshAccessToken(
-      savedAccessToken,
-      realm,
-      clientId,
-      clientSecret,
-      refreshToken
-    );
-
-    if (!refreshTokenResponse) return;
-
-    authStorage.setItem("accessToken", refreshTokenResponse.accessToken);
-    authStorage.setItem("refreshToken", refreshTokenResponse.refreshToken);
-    authStorage.setItem("expiresIn", refreshTokenResponse.expiresIn);
-
-    return refreshTokenResponse;
-  }
-};
-
 const resetSignOutTimer = (
   signOutTimeoutRef: React.RefObject<NodeJS.Timeout | null>,
   signOutIntervalRef: React.RefObject<NodeJS.Timeout | null>,
@@ -214,10 +153,4 @@ const authRedirect = (url: string) => {
   window.dispatchEvent(new PopStateEvent("popstate"));
 };
 
-export {
-  authRedirect,
-  refreshTokens,
-  resetSignOutTimer,
-  setupSignOutEvents,
-  utilValidateSession,
-};
+export { authRedirect, resetSignOutTimer, setupSignOutEvents };
