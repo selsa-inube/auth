@@ -11,7 +11,8 @@ import {
 } from "./authorization";
 
 const loginWithRedirect = async (
-  options: Record<string, any>
+  options: Record<string, any>,
+  _: boolean
 ): Promise<void> => {
   const { clientId, clientSecret, realm, authorizationParams } = options;
 

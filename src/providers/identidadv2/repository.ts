@@ -11,7 +11,8 @@ import {
 } from "./authorization";
 
 const loginWithRedirect = async (
-  options: Record<string, any>
+  options: Record<string, any>,
+  isProduction: boolean
 ): Promise<void> => {
   const { clientId, clientSecret, realm, authorizationParams } = options;
 
@@ -19,7 +20,14 @@ const loginWithRedirect = async (
 
   const { redirectUri, scope } = authorizationParams;
 
-  await requestAuthorizationCode(clientId, realm, redirectUri, scope);
+  await requestAuthorizationCode(
+    clientId,
+    realm,
+    redirectUri,
+    scope,
+    "online",
+    isProduction
+  );
 };
 
 const validateSession = async (
@@ -68,14 +76,16 @@ const validateSession = async (
       clientId,
       clientSecret,
       realm,
-      redirectUri
+      redirectUri,
+      isProduction
     );
 
     if (!accessTokenResponse) return;
 
     const sessionData = await verifyAccessToken(
       accessTokenResponse.accessToken,
-      realm
+      realm,
+      isProduction
     );
 
     if (!sessionData) return;
@@ -123,7 +133,8 @@ const refreshSession = async (
       realm,
       clientId,
       clientSecret,
-      refreshToken
+      refreshToken,
+      isProduction
     );
     if (!refreshTokenResponse) return;
 
@@ -140,7 +151,7 @@ const logout = async (
   realm: string,
   isProduction: boolean
 ) => {
-  await revokeAccessToken(accessToken, realm);
+  await revokeAccessToken(accessToken, realm, isProduction);
 
   const authStorage = getAuthStorage(isProduction);
 

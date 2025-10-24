@@ -2,7 +2,11 @@ import { getAuthorizationCode } from "src/utils/params";
 import { generateCodeChallengePair, generateState } from "../../utils/codes";
 import { ISessionData } from "../types";
 
-const SERVICE_URL = "https://dev.selsacloud.com/identidad/v2/api";
+const getServiceUrl = (isProduction: boolean) => {
+  return isProduction
+    ? "https://identity.selsacloud.com/v2/api/realms/{realmId}/protocol/oauth2"
+    : "https://dev.selsacloud.com/identidad/v2/api";
+};
 
 const requestAuthorizationCode = async (
   clientId: string,
@@ -16,7 +20,8 @@ const requestAuthorizationCode = async (
     "phone",
     "identityDocument",
   ],
-  accessType: "online" | "offline" = "online"
+  accessType: "online" | "offline" = "online",
+  isProduction: boolean
 ) => {
   try {
     const { codeChallenge, codeVerifier } = await generateCodeChallengePair();
@@ -38,7 +43,9 @@ const requestAuthorizationCode = async (
       response_mode: "query",
     });
 
-    const authorizationUrl = `${SERVICE_URL}/realms/${realm}/protocols/oauth2/authorize?${params.toString()}`;
+    const authorizationUrl = `${getServiceUrl(
+      isProduction
+    )}/realms/${realm}/protocols/oauth2/authorize?${params.toString()}`;
 
     window.location.replace(authorizationUrl);
   } catch (error) {
@@ -60,7 +67,8 @@ const getAccessToken = async (
   clientId: string,
   clientSecret: string,
   realm: string,
-  redirectUri: string
+  redirectUri: string,
+  isProduction: boolean
 ) => {
   try {
     const codeVerifier = sessionStorage.getItem("pkce_code_verifier");
@@ -78,7 +86,7 @@ const getAccessToken = async (
     const basicAuth = btoa(`${clientId}:${clientSecret}`);
 
     const res = await fetch(
-      `${SERVICE_URL}/realms/${realm}/protocols/oauth2/token`,
+      `${getServiceUrl(isProduction)}/realms/${realm}/protocols/oauth2/token`,
       {
         method: "POST",
         headers: {
@@ -113,10 +121,16 @@ const getAccessToken = async (
   }
 };
 
-const verifyAccessToken = async (accessToken: string, realm: string) => {
+const verifyAccessToken = async (
+  accessToken: string,
+  realm: string,
+  isProduction: boolean
+) => {
   try {
     const res = await fetch(
-      `${SERVICE_URL}/realms/${realm}/protocols/oauth2/userinfo`,
+      `${getServiceUrl(
+        isProduction
+      )}/realms/${realm}/protocols/oauth2/userinfo`,
       {
         method: "GET",
         headers: {
@@ -164,7 +178,8 @@ const refreshAccessToken = async (
   realm: string,
   clientId: string,
   clientSecret: string,
-  refreshToken: string
+  refreshToken: string,
+  isProduction: boolean
 ) => {
   try {
     const bodyParams = new URLSearchParams();
@@ -174,7 +189,7 @@ const refreshAccessToken = async (
     const basicAuth = btoa(`${clientId}:${clientSecret}`);
 
     const res = await fetch(
-      `${SERVICE_URL}/realms/${realm}/protocols/oauth2/token`,
+      `${getServiceUrl(isProduction)}/realms/${realm}/protocols/oauth2/token`,
       {
         method: "POST",
         headers: {
@@ -208,15 +223,22 @@ interface IRevokeTokenResponse {
   accessToken: string;
 }
 
-const revokeAccessToken = async (accessToken: string, realm: string) => {
+const revokeAccessToken = async (
+  accessToken: string,
+  realm: string,
+  isProduction: boolean
+) => {
   try {
-    const res = await fetch(`${SERVICE_URL}/oauth2/token/${realm}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `1/${accessToken}`,
-      },
-    });
+    const res = await fetch(
+      `${getServiceUrl(isProduction)}/oauth2/token/${realm}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `1/${accessToken}`,
+        },
+      }
+    );
 
     const data = await res.json();
 

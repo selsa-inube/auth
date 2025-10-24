@@ -100,7 +100,7 @@ function AuthProvider(props: AuthProviderProps) {
   };
 
   const loadUserFromStorage = async () => {
-    if (tokenIsFetched.current) return;
+    if (tokenIsFetched.current || !realm) return;
 
     const selectedProvider = getProvider(provider);
 
@@ -110,9 +110,8 @@ function AuthProvider(props: AuthProviderProps) {
         clientSecret,
         realm,
         authorizationParams,
-        isProduction,
       },
-      isProduction || false,
+      isProduction,
       tokenIsFetched,
       setupRefreshInterval
     );
@@ -129,12 +128,17 @@ function AuthProvider(props: AuthProviderProps) {
   const loginWithRedirect = useCallback(async () => {
     const selectedProvider = getProvider(provider);
 
-    await selectedProvider.loginWithRedirect({
-      clientId,
-      clientSecret,
-      realm,
-      authorizationParams,
-    });
+    if (!realm) return;
+
+    await selectedProvider.loginWithRedirect(
+      {
+        clientId,
+        clientSecret,
+        realm,
+        authorizationParams,
+      },
+      isProduction
+    );
   }, [
     provider,
     clientId,
