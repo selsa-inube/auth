@@ -16,20 +16,23 @@ function generateCodeVerifier(): string {
   return codeVerifier.join("");
 }
 
-async function generateCodeChallenge(codeVerifier: string) {
-  if (!window || !window.crypto) return;
-  const encoder = new TextEncoder();
-  const data = encoder.encode(codeVerifier);
-  const buffer = await window.crypto.subtle.digest("SHA-256", data);
-  const codeChallenge = Array.from(new Uint8Array(buffer))
-    .map((byte) => String.fromCharCode(byte))
-    .join("");
-  return base64UrlEncode(codeChallenge);
+function base64UrlEncode(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
-function base64UrlEncode(input: string): string {
-  const base64 = btoa(input);
-  return base64.replace("+", "-").replace("/", "_").replace(/=+$/, "");
+async function generateCodeChallenge(codeVerifier: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(codeVerifier);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return base64UrlEncode(digest);
 }
 
 async function generateCodeChallengePair(): Promise<{
@@ -38,9 +41,6 @@ async function generateCodeChallengePair(): Promise<{
 }> {
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = await generateCodeChallenge(codeVerifier);
-  if (!codeChallenge) {
-    throw new Error("No se pudo generar el code challenge");
-  }
   return { codeVerifier, codeChallenge };
 }
 

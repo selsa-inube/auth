@@ -41,10 +41,17 @@ npm install --save @inube/auth
 - clientId: Id of client
 - clientSecret: Secret of client
 - realm: Realm of client
-- provider: Provider of client (e.g. "identidad")
+- provider: Provider of client (e.g. "identidadv1", "identidadv2")
 - authorizationParams: Authorization parameters
   - redirectUri: Redirect URI when authentication is successful
-  - scope: Scope
+  - scope: Scope of authentication (e.g. [
+    "openid",
+    "email",
+    "profile",
+    "address",
+    "phone",
+    "identityDocument",
+    ])
 - isProduction: Is production environment, define for deciding which storage to use dev = localStorage, prod = sessionStorage
 - withSignOutTimeout: With sign out in timeout
 - signOutTime: Sign out time in milliseconds

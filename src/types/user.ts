@@ -2,9 +2,7 @@ interface IUser {
   id: string;
   identification: string;
   firstName: string;
-  secondName: string;
-  firstLastName: string;
-  secondLastName: string;
+  lastName: string;
   email: string;
   phone: string;
   company: string;
