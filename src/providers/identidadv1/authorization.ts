@@ -1,6 +1,6 @@
-import { IUser } from "src/types/user";
 import { getAuthorizationCode } from "src/utils/params";
 import { generateCodeChallengePair, generateState } from "../../utils/codes";
+import { ISessionData } from "../types";
 
 const SERVICE_URL =
   "https://odin.selsacloud.com/linix/v7/da77663b-eeaf-42a0-a093-5efbdb1e54d2/servicio/identidad";
@@ -112,14 +112,6 @@ const getAccessToken = async (
   }
 };
 
-interface ISessionData {
-  expiresIn: number;
-  idSesion: string;
-  accessToken: string;
-  user: IUser;
-  refreshToken?: string;
-}
-
 const verifyAccessToken = async (accessToken: string, realm: string) => {
   try {
     const res = await fetch(`${SERVICE_URL}/oauth2/token/${realm}/info`, {
@@ -141,10 +133,8 @@ const verifyAccessToken = async (accessToken: string, realm: string) => {
           id: data.usuario.id,
           company: data.usuario.repositorio,
           email: data.usuario.correoElectronico,
-          firstName: data.usuario.primerNombre,
-          secondName: data.usuario.segundoNombre,
-          firstLastName: data.usuario.primerApellido,
-          secondLastName: data.usuario.segundoApellido,
+          firstName: `${data.usuario.primerNombre} ${data.usuario.segundoNombre}`,
+          lastName: `${data.usuario.primerApellido} ${data.usuario.segundoApellido}`,
           identification: data.usuario.identificacion,
           phone: data.usuario.telefonoMovil,
           type: data.usuario.tipo,

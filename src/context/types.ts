@@ -12,4 +12,6 @@ interface IAuthContext {
   logout: () => void;
 }
 
-export type { IAuthContext };
+type ProviderType = "identidadv1" | "identidadv2";
+
+export type { IAuthContext, ProviderType };
