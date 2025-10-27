@@ -4,7 +4,7 @@ import { ISessionData } from "../types";
 
 const getServiceUrl = (isProduction: boolean) => {
   return isProduction
-    ? "https://identity.selsacloud.com/v2/api/realms/{realmId}/protocol/oauth2"
+    ? "https://identity.selsacloud.com/v2/api"
     : "https://dev.selsacloud.com/identidad/v2/api";
 };
 
