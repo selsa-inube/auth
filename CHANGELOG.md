@@ -1,3 +1,15 @@
+# v1.1.8 (Mon Oct 27 2025)
+
+#### ⚠️ Pushed to `main`
+
+- fix: change v2 path identidad v2 ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.1.7 (Fri Oct 24 2025)
 
 #### 🐛 Bug Fix
