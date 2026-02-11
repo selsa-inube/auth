@@ -13,11 +13,15 @@ import {
 const loginWithRedirect = async (
   options: Record<string, any>
 ): Promise<void> => {
-  const { clientId, clientSecret, realm, authorizationParams } = options;
+  const { clientId, clientSecret, realm, authorizationParams, isProduction } = options;
 
   if (!clientSecret || !realm) return;
 
   const { redirectUri, scope } = authorizationParams;
+
+  const authStorage = getAuthStorage(isProduction);
+  authStorage.clear();
+  window.history.replaceState({}, "", "/");
 
   await requestAuthorizationCode(
     clientId,

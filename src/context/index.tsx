@@ -8,6 +8,7 @@ import {
 } from "react";
 import { getProvider } from "src/providers/factory";
 import { IUser } from "src/types/user";
+import { getAuthStorage } from "./config/storage";
 import { IAuthContext, ProviderType } from "./types";
 import { resetSignOutTimer, setupSignOutEvents } from "./utils";
 
@@ -71,8 +72,7 @@ function AuthProvider(props: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<IUser>();
   const [accessToken, setAccessToken] = useState<string>();
-  const [isSessionExpired, setIsSessionExpired] = useState(false);
-  const [isForceLogout, setIsForceLogout] = useState(() => sessionStorage.getItem(SESSION_EXPIRED_KEY) === "true");
+  const [isSessionExpired, setIsSessionExpired] = useState(() => getAuthStorage(isProduction).getItem(SESSION_EXPIRED_KEY) === "true");
   const [remainingSignOutTime, setRemainingSignOutTime] = useState<number>(
     signOutTime || 0
   );
@@ -105,6 +105,11 @@ function AuthProvider(props: AuthProviderProps) {
   const loadUserFromStorage = async () => {
     if (tokenIsFetched.current) return;
 
+    if (isSessionExpired) {
+      setIsLoading(false);
+      return;
+    }
+
     const selectedProvider = getProvider(provider);
 
     const sessionData = await selectedProvider.validateSession(
@@ -121,6 +126,8 @@ function AuthProvider(props: AuthProviderProps) {
     );
 
     if (sessionData?.user && sessionData?.accessToken) {
+      getAuthStorage(isProduction).removeItem(SESSION_EXPIRED_KEY);
+      setIsSessionExpired(false);
       setUser(sessionData.user);
       setAccessToken(sessionData.accessToken);
       setIsAuthenticated(true);
@@ -132,14 +139,15 @@ function AuthProvider(props: AuthProviderProps) {
   const loginWithRedirect = useCallback(async () => {
     const selectedProvider = getProvider(provider);
 
-    sessionStorage.clear();
-    window.history.replaceState({}, "", "/");
+    setIsSessionExpired(false);
+    getAuthStorage(isProduction).removeItem(SESSION_EXPIRED_KEY);
 
     await selectedProvider.loginWithRedirect({
       clientId,
       clientSecret,
       realm,
       authorizationParams,
+      isProduction,
     });
   }, [
     provider,
@@ -160,6 +168,7 @@ function AuthProvider(props: AuthProviderProps) {
 
       if (sessionExpired) {
         setIsSessionExpired(true);
+        getAuthStorage(isProduction).setItem(SESSION_EXPIRED_KEY, "true");
       }
 
       setUser(undefined);
@@ -203,19 +212,10 @@ function AuthProvider(props: AuthProviderProps) {
   }, []);
 
   useEffect(() => {
-    if (isSessionExpired) {
-      localStorage.clear();
-      sessionStorage.clear();
-      sessionStorage.setItem(SESSION_EXPIRED_KEY, "true");
-      setIsForceLogout(true);
-    }
-  }, [isSessionExpired]);
-
-  useEffect(() => {
-    if (!isLoading && isAuthenticated && isForceLogout) {
+    if (!isLoading && isAuthenticated && isSessionExpired) {
       logout();
     }
-  }, [isLoading, isAuthenticated, isForceLogout]);
+  }, [isLoading, isAuthenticated, isSessionExpired]);
 
   useEffect(() => {
     loadUserFromStorage();
@@ -233,8 +233,6 @@ function AuthProvider(props: AuthProviderProps) {
     return cleanup;
   }, [expiresIn]);
 
-  const combinedIsSessionExpired = isSessionExpired || isForceLogout;
-
   const authContext = useMemo(
     () => ({
       user,
@@ -242,7 +240,7 @@ function AuthProvider(props: AuthProviderProps) {
       isLoading,
       isAuthenticated,
       remainingSignOutTime,
-      isSessionExpired: combinedIsSessionExpired,
+      isSessionExpired,
       loginWithRedirect,
       logout,
     }),
@@ -252,7 +250,7 @@ function AuthProvider(props: AuthProviderProps) {
       isLoading,
       isAuthenticated,
       remainingSignOutTime,
-      combinedIsSessionExpired,
+      isSessionExpired,
       loginWithRedirect,
       logout,
     ]
