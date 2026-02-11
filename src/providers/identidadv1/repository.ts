@@ -150,7 +150,8 @@ const refreshSession = async (
 const logout = async (
   accessToken: string,
   realm: string,
-  isProduction: boolean
+  isProduction: boolean,
+  sessionExpired?: boolean
 ) => {
   await revokeAccessToken(accessToken, realm);
 
@@ -160,6 +161,10 @@ const logout = async (
   authStorage.removeItem("accessToken");
   authStorage.removeItem("refreshToken");
   authStorage.removeItem("expiresIn");
+
+  if (sessionExpired) {
+    authStorage.setItem("sessionExpired", "true");
+  }
 };
 
 const getExpiredTime = (isProduction: boolean): number | null => {

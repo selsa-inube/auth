@@ -12,8 +12,6 @@ import { getAuthStorage } from "./config/storage";
 import { IAuthContext, ProviderType } from "./types";
 import { resetSignOutTimer, setupSignOutEvents } from "./utils";
 
-const SESSION_EXPIRED_KEY = "sessionExpired";
-
 const AuthContext = createContext<IAuthContext>({} as IAuthContext);
 
 interface AuthProviderProps {
@@ -72,7 +70,7 @@ function AuthProvider(props: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<IUser>();
   const [accessToken, setAccessToken] = useState<string>();
-  const [isSessionExpired, setIsSessionExpired] = useState(() => getAuthStorage(isProduction).getItem(SESSION_EXPIRED_KEY) === "true");
+  const [isSessionExpired, setIsSessionExpired] = useState(() => getAuthStorage(isProduction).getItem("sessionExpired") === "true");
   const [remainingSignOutTime, setRemainingSignOutTime] = useState<number>(
     signOutTime || 0
   );
@@ -126,7 +124,6 @@ function AuthProvider(props: AuthProviderProps) {
     );
 
     if (sessionData?.user && sessionData?.accessToken) {
-      getAuthStorage(isProduction).removeItem(SESSION_EXPIRED_KEY);
       setIsSessionExpired(false);
       setUser(sessionData.user);
       setAccessToken(sessionData.accessToken);
@@ -140,7 +137,6 @@ function AuthProvider(props: AuthProviderProps) {
     const selectedProvider = getProvider(provider);
 
     setIsSessionExpired(false);
-    getAuthStorage(isProduction).removeItem(SESSION_EXPIRED_KEY);
 
     await selectedProvider.loginWithRedirect({
       clientId,
@@ -163,12 +159,11 @@ function AuthProvider(props: AuthProviderProps) {
       if (accessToken && realm) {
         const selectedProvider = getProvider(provider);
 
-        selectedProvider.logout(accessToken, realm, isProduction);
+        selectedProvider.logout(accessToken, realm, isProduction, sessionExpired);
       }
 
       if (sessionExpired) {
         setIsSessionExpired(true);
-        getAuthStorage(isProduction).setItem(SESSION_EXPIRED_KEY, "true");
       }
 
       setUser(undefined);
