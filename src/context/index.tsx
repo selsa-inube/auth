@@ -11,6 +11,8 @@ import { IUser } from "src/types/user";
 import { IAuthContext, ProviderType } from "./types";
 import { resetSignOutTimer, setupSignOutEvents } from "./utils";
 
+const SESSION_EXPIRED_KEY = "sessionExpired";
+
 const AuthContext = createContext<IAuthContext>({} as IAuthContext);
 
 interface AuthProviderProps {
@@ -70,6 +72,7 @@ function AuthProvider(props: AuthProviderProps) {
   const [user, setUser] = useState<IUser>();
   const [accessToken, setAccessToken] = useState<string>();
   const [isSessionExpired, setIsSessionExpired] = useState(false);
+  const [isForceLogout, setIsForceLogout] = useState(() => sessionStorage.getItem(SESSION_EXPIRED_KEY) === "true");
   const [remainingSignOutTime, setRemainingSignOutTime] = useState<number>(
     signOutTime || 0
   );
@@ -128,6 +131,9 @@ function AuthProvider(props: AuthProviderProps) {
 
   const loginWithRedirect = useCallback(async () => {
     const selectedProvider = getProvider(provider);
+
+    sessionStorage.clear();
+    window.history.replaceState({}, "", "/");
 
     await selectedProvider.loginWithRedirect({
       clientId,
@@ -197,6 +203,21 @@ function AuthProvider(props: AuthProviderProps) {
   }, []);
 
   useEffect(() => {
+    if (isSessionExpired) {
+      localStorage.clear();
+      sessionStorage.clear();
+      sessionStorage.setItem(SESSION_EXPIRED_KEY, "true");
+      setIsForceLogout(true);
+    }
+  }, [isSessionExpired]);
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && isForceLogout) {
+      logout();
+    }
+  }, [isLoading, isAuthenticated, isForceLogout]);
+
+  useEffect(() => {
     loadUserFromStorage();
 
     const selectedProvider = getProvider(provider);
@@ -212,6 +233,8 @@ function AuthProvider(props: AuthProviderProps) {
     return cleanup;
   }, [expiresIn]);
 
+  const combinedIsSessionExpired = isSessionExpired || isForceLogout;
+
   const authContext = useMemo(
     () => ({
       user,
@@ -219,7 +242,7 @@ function AuthProvider(props: AuthProviderProps) {
       isLoading,
       isAuthenticated,
       remainingSignOutTime,
-      isSessionExpired,
+      isSessionExpired: combinedIsSessionExpired,
       loginWithRedirect,
       logout,
     }),
@@ -229,7 +252,7 @@ function AuthProvider(props: AuthProviderProps) {
       isLoading,
       isAuthenticated,
       remainingSignOutTime,
-      isSessionExpired,
+      combinedIsSessionExpired,
       loginWithRedirect,
       logout,
     ]
