@@ -8,7 +8,6 @@ import {
 } from "react";
 import { getProvider } from "src/providers/factory";
 import { IUser } from "src/types/user";
-import { getAuthStorage } from "./config/storage";
 import { IAuthContext, ProviderType } from "./types";
 import { resetSignOutTimer, setupSignOutEvents } from "./utils";
 
@@ -70,7 +69,10 @@ function AuthProvider(props: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<IUser>();
   const [accessToken, setAccessToken] = useState<string>();
-  const [isSessionExpired, setIsSessionExpired] = useState(() => getAuthStorage(isProduction).getItem("sessionExpired") === "true");
+  const [isSessionExpired, setIsSessionExpired] = useState(() => {
+    const selectedProvider = getProvider(provider);
+    return selectedProvider.getSessionExpired?.(isProduction) ?? false;
+  });
   const [remainingSignOutTime, setRemainingSignOutTime] = useState<number>(
     signOutTime || 0
   );
@@ -124,6 +126,7 @@ function AuthProvider(props: AuthProviderProps) {
     );
 
     if (sessionData?.user && sessionData?.accessToken) {
+      selectedProvider.removeSessionExpired?.(isProduction);
       setIsSessionExpired(false);
       setUser(sessionData.user);
       setAccessToken(sessionData.accessToken);
@@ -156,14 +159,15 @@ function AuthProvider(props: AuthProviderProps) {
 
   const logout = useCallback(
     (sessionExpired?: boolean) => {
-      if (accessToken && realm) {
-        const selectedProvider = getProvider(provider);
-
-        selectedProvider.logout(accessToken, realm, isProduction, sessionExpired);
-      }
+      const selectedProvider = getProvider(provider);
 
       if (sessionExpired) {
+        selectedProvider.setSessionExpired?.(isProduction);
         setIsSessionExpired(true);
+      }
+
+      if (accessToken && realm) {
+        selectedProvider.logout(accessToken, realm, isProduction, sessionExpired);
       }
 
       setUser(undefined);

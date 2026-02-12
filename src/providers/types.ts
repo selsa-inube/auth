@@ -40,6 +40,12 @@ interface IProviderRepository {
   ) => Promise<void>;
 
   getExpiredTime: (isProduction: boolean) => number | null;
+
+  setSessionExpired?: (isProduction: boolean) => void;
+
+  removeSessionExpired?: (isProduction: boolean) => void;
+
+  getSessionExpired?: (isProduction: boolean) => boolean;
 }
 
 export type { IProviderRepository, ISessionData };

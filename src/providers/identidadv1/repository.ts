@@ -151,7 +151,6 @@ const logout = async (
   accessToken: string,
   realm: string,
   isProduction: boolean,
-  sessionExpired?: boolean
 ) => {
   await revokeAccessToken(accessToken, realm);
 
@@ -161,10 +160,6 @@ const logout = async (
   authStorage.removeItem("accessToken");
   authStorage.removeItem("refreshToken");
   authStorage.removeItem("expiresIn");
-
-  if (sessionExpired) {
-    authStorage.setItem("sessionExpired", "true");
-  }
 };
 
 const getExpiredTime = (isProduction: boolean): number | null => {
@@ -175,12 +170,24 @@ const getExpiredTime = (isProduction: boolean): number | null => {
   return expiresIn ? Number(expiresIn) : null;
 };
 
+const setSessionExpired = (isProduction: boolean) =>
+  getAuthStorage(isProduction).setItem("sessionExpired", "true");
+
+const removeSessionExpired = (isProduction: boolean) =>
+  getAuthStorage(isProduction).removeItem("sessionExpired");
+
+const getSessionExpired = (isProduction: boolean): boolean =>
+  getAuthStorage(isProduction).getItem("sessionExpired") === "true";
+
 const identidadV1Repository = {
   loginWithRedirect,
   validateSession,
   refreshSession,
   logout,
   getExpiredTime,
+  setSessionExpired,
+  removeSessionExpired,
+  getSessionExpired,
 };
 
 export { identidadV1Repository };
