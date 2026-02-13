@@ -136,6 +136,7 @@ function AuthProvider(props: AuthProviderProps) {
   };
 
   const loginWithRedirect = useCallback(async () => {
+    if (!realm) return;
     const selectedProvider = getProvider(provider);
 
     setIsSessionExpired(false);
@@ -145,7 +146,9 @@ function AuthProvider(props: AuthProviderProps) {
       clientSecret,
       realm,
       authorizationParams,
-    });
+    },
+    isProduction
+  );
   }, [
     provider,
     clientId,
