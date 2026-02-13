@@ -124,6 +124,18 @@ const verifyAccessToken = async (accessToken: string, realm: string) => {
 
     const data = await res.json();
 
+    let firstName = data.usuario.primerNombre;
+
+    if (data.usuario.segundoNombre) {
+      firstName += ` ${data.usuario.segundoNombre}`;
+    }
+
+    let lastName = data.usuario.primerApellido;
+
+    if (data.usuario.segundoApellido) {
+      lastName += ` ${data.usuario.segundoApellido}`;
+    }
+
     if (data.expires_in && data.idSesion && data.usuario) {
       const sessionData: ISessionData = {
         expiresIn: data.expires_in,
@@ -133,8 +145,8 @@ const verifyAccessToken = async (accessToken: string, realm: string) => {
           id: data.usuario.id,
           company: data.usuario.repositorio,
           email: data.usuario.correoElectronico,
-          firstName: `${data.usuario.primerNombre} ${data.usuario.segundoNombre}`,
-          lastName: `${data.usuario.primerApellido} ${data.usuario.segundoApellido}`,
+          firstName,
+          lastName,
           identification: data.usuario.identificacion,
           phone: data.usuario.telefonoMovil,
           type: data.usuario.tipo,

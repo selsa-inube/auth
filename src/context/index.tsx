@@ -103,7 +103,7 @@ function AuthProvider(props: AuthProviderProps) {
   };
 
   const loadUserFromStorage = async () => {
-    if (tokenIsFetched.current) return;
+    if (tokenIsFetched.current || !realm) return;
 
     if (isSessionExpired) {
       setIsLoading(false);
@@ -118,9 +118,8 @@ function AuthProvider(props: AuthProviderProps) {
         clientSecret,
         realm,
         authorizationParams,
-        isProduction,
       },
-      isProduction || false,
+      isProduction,
       tokenIsFetched,
       setupRefreshInterval
     );
@@ -146,7 +145,6 @@ function AuthProvider(props: AuthProviderProps) {
       clientSecret,
       realm,
       authorizationParams,
-      isProduction,
     });
   }, [
     provider,

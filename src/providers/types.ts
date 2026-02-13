@@ -9,10 +9,29 @@ interface ISessionData {
 }
 
 interface IProviderRepository {
-  loginWithRedirect: (options: Record<string, any>) => Promise<void>;
+  loginWithRedirect: (
+    options: {
+      clientId: string;
+      clientSecret?: string;
+      realm: string;
+      authorizationParams: {
+        redirectUri: string;
+        scope: string[];
+      };
+    },
+    isProduction: boolean
+  ) => Promise<void>;
 
   validateSession: (
-    options: Record<string, any>,
+    options: {
+      clientId: string;
+      clientSecret?: string;
+      realm: string;
+      authorizationParams: {
+        redirectUri: string;
+        scope: string[];
+      };
+    },
     isProduction: boolean,
     tokenIsFetched: React.RefObject<boolean>,
     setupRefreshInterval: () => void
