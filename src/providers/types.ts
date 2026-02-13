@@ -44,20 +44,27 @@ interface IProviderRepository {
     isProduction: boolean
   ) => Promise<
     | {
-        accessToken: string;
-        refreshToken: string;
-        expiresIn: string;
-      }
+      accessToken: string;
+      refreshToken: string;
+      expiresIn: string;
+    }
     | undefined
   >;
 
   logout: (
     accessToken: string,
     realm: string,
-    isProduction: boolean
+    isProduction: boolean,
+    sessionExpired?: boolean
   ) => Promise<void>;
 
   getExpiredTime: (isProduction: boolean) => number | null;
+
+  setSessionExpired?: (isProduction: boolean) => void;
+
+  removeSessionExpired?: (isProduction: boolean) => void;
+
+  getSessionExpired?: (isProduction: boolean) => boolean;
 }
 
 export type { IProviderRepository, ISessionData };
