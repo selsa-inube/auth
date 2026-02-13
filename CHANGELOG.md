@@ -1,3 +1,17 @@
+# v1.1.9 (Fri Feb 13 2026)
+
+#### 🐛 Bug Fix
+
+- Develop [#18](https://github.com/selsa-inube/auth/pull/18) ([@Yamil2717](https://github.com/Yamil2717) [@Sebas3245](https://github.com/Sebas3245))
+- fix: session-expired hack to skip login fixed [#17](https://github.com/selsa-inube/auth/pull/17) ([@Yamil2717](https://github.com/Yamil2717))
+
+#### Authors: 2
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+- Yamil Escorcia Infante ([@Yamil2717](https://github.com/Yamil2717))
+
+---
+
 # v1.1.8 (Mon Oct 27 2025)
 
 #### ⚠️ Pushed to `main`
