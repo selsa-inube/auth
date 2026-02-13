@@ -13,11 +13,15 @@ import {
 const loginWithRedirect = async (
   options: Record<string, any>
 ): Promise<void> => {
-  const { clientId, clientSecret, realm, authorizationParams } = options;
+  const { clientId, clientSecret, realm, authorizationParams, isProduction } = options;
 
   if (!clientSecret || !realm) return;
 
   const { redirectUri, scope } = authorizationParams;
+
+  const authStorage = getAuthStorage(isProduction);
+  authStorage.clear();
+  window.history.replaceState({}, "", "/");
 
   await requestAuthorizationCode(
     clientId,
@@ -146,7 +150,7 @@ const refreshSession = async (
 const logout = async (
   accessToken: string,
   realm: string,
-  isProduction: boolean
+  isProduction: boolean,
 ) => {
   await revokeAccessToken(accessToken, realm);
 
@@ -166,12 +170,24 @@ const getExpiredTime = (isProduction: boolean): number | null => {
   return expiresIn ? Number(expiresIn) : null;
 };
 
+const setSessionExpired = (isProduction: boolean) =>
+  getAuthStorage(isProduction).setItem("sessionExpired", "true");
+
+const removeSessionExpired = (isProduction: boolean) =>
+  getAuthStorage(isProduction).removeItem("sessionExpired");
+
+const getSessionExpired = (isProduction: boolean): boolean =>
+  getAuthStorage(isProduction).getItem("sessionExpired") === "true";
+
 const identidadV1Repository = {
   loginWithRedirect,
   validateSession,
   refreshSession,
   logout,
   getExpiredTime,
+  setSessionExpired,
+  removeSessionExpired,
+  getSessionExpired,
 };
 
 export { identidadV1Repository };

@@ -69,7 +69,10 @@ function AuthProvider(props: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<IUser>();
   const [accessToken, setAccessToken] = useState<string>();
-  const [isSessionExpired, setIsSessionExpired] = useState(false);
+  const [isSessionExpired, setIsSessionExpired] = useState(() => {
+    const selectedProvider = getProvider(provider);
+    return selectedProvider.getSessionExpired?.(isProduction) ?? false;
+  });
   const [remainingSignOutTime, setRemainingSignOutTime] = useState<number>(
     signOutTime || 0
   );
@@ -102,6 +105,11 @@ function AuthProvider(props: AuthProviderProps) {
   const loadUserFromStorage = async () => {
     if (tokenIsFetched.current) return;
 
+    if (isSessionExpired) {
+      setIsLoading(false);
+      return;
+    }
+
     const selectedProvider = getProvider(provider);
 
     const sessionData = await selectedProvider.validateSession(
@@ -118,6 +126,8 @@ function AuthProvider(props: AuthProviderProps) {
     );
 
     if (sessionData?.user && sessionData?.accessToken) {
+      selectedProvider.removeSessionExpired?.(isProduction);
+      setIsSessionExpired(false);
       setUser(sessionData.user);
       setAccessToken(sessionData.accessToken);
       setIsAuthenticated(true);
@@ -129,11 +139,14 @@ function AuthProvider(props: AuthProviderProps) {
   const loginWithRedirect = useCallback(async () => {
     const selectedProvider = getProvider(provider);
 
+    setIsSessionExpired(false);
+
     await selectedProvider.loginWithRedirect({
       clientId,
       clientSecret,
       realm,
       authorizationParams,
+      isProduction,
     });
   }, [
     provider,
@@ -146,14 +159,15 @@ function AuthProvider(props: AuthProviderProps) {
 
   const logout = useCallback(
     (sessionExpired?: boolean) => {
-      if (accessToken && realm) {
-        const selectedProvider = getProvider(provider);
-
-        selectedProvider.logout(accessToken, realm, isProduction);
-      }
+      const selectedProvider = getProvider(provider);
 
       if (sessionExpired) {
+        selectedProvider.setSessionExpired?.(isProduction);
         setIsSessionExpired(true);
+      }
+
+      if (accessToken && realm) {
+        selectedProvider.logout(accessToken, realm, isProduction, sessionExpired);
       }
 
       setUser(undefined);
@@ -195,6 +209,12 @@ function AuthProvider(props: AuthProviderProps) {
       logout
     );
   }, []);
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && isSessionExpired) {
+      logout();
+    }
+  }, [isLoading, isAuthenticated, isSessionExpired]);
 
   useEffect(() => {
     loadUserFromStorage();
