@@ -38,11 +38,13 @@ npm install --save @inube/auth
 
 ### AuthProvider Props:
 
-- clientId: Id of client
-- clientSecret: Secret of client
-- realm: Realm of client
-- provider: Provider of client (e.g. "identidadv1", "identidadv2")
-- authorizationParams: Authorization parameters
+- provider: Provider of client (e.g. "identidadv1", "identidadv2", "iauth)
+- authParams: Authorization parameters
+  - clientId: Client ID (optional, depending on the provider's requirements)
+  - clientSecret: Client Secret (optional, depending on the provider's requirements)
+  - realm: Realm or tenant identifier for the authentication provider (optional, depending on the provider's requirements)
+  - originatorId: Originator ID for the authentication provider (optional, depending on the provider's requirements)
+  - applicationName: Application name for the authentication provider (optional, depending on the provider's requirements)
   - redirectUri: Redirect URI when authentication is successful
   - scope: Scope of authentication (e.g. [
     "openid",
@@ -88,7 +90,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       clientId={CLIENT_ID}
       clientSecret={CLIENT_SECRET}
       realm={REALM}
-      authorizationParams={{ redirectUri: REDIRECT_URI, scope: [] }}
+      authParams={{ redirectUri: REDIRECT_URI, scope: [] }}
       isProduction={IS_PRODUCTION}
     >
       <App />

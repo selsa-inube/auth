@@ -23,10 +23,10 @@ const WITH_SIGNOUT_CHANGE_PAGE = import.meta.env.VITE_WITH_SIGNOUT_CHANGE_PAGE;
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <AuthProvider
     provider={PROVIDER}
-    clientId={CLIENT_ID}
-    clientSecret={CLIENT_SECRET}
-    realm={REALM}
-    authorizationParams={{
+    authParams={{
+      clientId: CLIENT_ID,
+      clientSecret: CLIENT_SECRET,
+      realm: REALM,
       redirectUri: REDIRECT_URI,
       scope: [
         "openid",
@@ -36,6 +36,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         "phone",
         "identityDocument",
       ],
+      originatorId: "fondecom-personas-id",
+      applicationName: "portal-servicios-financieros",
     }}
     withSignOutTimeout={WITH_AUTO_SIGNOUT}
     signOutTime={TIMEOUT}

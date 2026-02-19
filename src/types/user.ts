@@ -3,10 +3,10 @@ interface IUser {
   identification: string;
   firstName: string;
   lastName: string;
-  email: string;
-  phone: string;
+  email?: string;
+  phone?: string;
   company: string;
-  type: string;
+  type?: string;
   operator?: {
     name: string;
     logo: string;

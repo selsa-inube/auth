@@ -1,3 +1,22 @@
+# v1.1.10 (Thu Feb 19 2026)
+
+#### 🐛 Bug Fix
+
+- Develop [#18](https://github.com/selsa-inube/auth/pull/18) ([@Yamil2717](https://github.com/Yamil2717) [@Sebas3245](https://github.com/Sebas3245))
+
+#### ⚠️ Pushed to `main`
+
+- feat: added iauth provider (jsebastianlara3245@gmail.com)
+- Merge branch 'develop' of github.com:selsa-inube/auth ([@Yamil2717](https://github.com/Yamil2717))
+
+#### Authors: 3
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+- Sebastian Lara (jsebastianlara3245@gmail.com)
+- Yamil Escorcia Infante ([@Yamil2717](https://github.com/Yamil2717))
+
+---
+
 # v1.1.9 (Fri Feb 13 2026)
 
 #### 🐛 Bug Fix
