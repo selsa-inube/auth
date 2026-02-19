@@ -8,29 +8,19 @@ import {
 } from "react";
 import { getProvider } from "src/providers/factory";
 import { IUser } from "src/types/user";
-import { IAuthContext, ProviderType } from "./types";
-import { resetSignOutTimer, setupSignOutEvents } from "./utils";
+import { IAuthContext, IAuthParams, ProviderType } from "./types";
+import {
+  resetSignOutTimer,
+  setupSignOutEvents,
+  validateProvider,
+} from "./utils";
 
 const AuthContext = createContext<IAuthContext>({} as IAuthContext);
 
 interface AuthProviderProps {
   children: React.ReactNode; // ReactNode is a type that represents anything that can be rendered in React
-  clientId: string; // Id of client
-  clientSecret?: string; // Secret of client
-  realm?: string; // Realm of client
-  provider: ProviderType; // Provider of client (e.g. "identidad" or "identidadv2")
-  authorizationParams: {
-    // Authorization parameters
-    redirectUri: string; // Redirect URI when authentication is successful
-    scope: string[]; // Scope of authentication (e.g. [
-    //    "openid",
-    //    "email",
-    //    "profile",
-    //    "address",
-    //    "phone",
-    //    "identityDocument",
-    //    ]
-  };
+  provider: ProviderType; // Provider of client (e.g. "identidadv1" or "identidadv2" or "iauth")
+  authParams: IAuthParams; // Authentication parameters specific to the provider
   isProduction?: boolean; // Is production environment, define for deciding which storage to use dev = localStorage, prod = sessionStorage
   withSignOutTimeout?: boolean; // With sign out in timeout
   signOutTime?: number; // Sign out time
@@ -47,10 +37,7 @@ interface AuthProviderProps {
 function AuthProvider(props: AuthProviderProps) {
   const {
     children,
-    clientId,
-    clientSecret,
-    realm,
-    authorizationParams,
+    authParams,
     provider,
     isProduction = false,
     withSignOutTimeout,
@@ -82,14 +69,12 @@ function AuthProvider(props: AuthProviderProps) {
   const [expiresIn, setExpiresIn] = useState<number>();
 
   const setupRefreshInterval = () => {
-    if (!expiresIn || !realm || !clientId || !clientSecret) return;
+    if (!expiresIn) return;
     const selectedProvider = getProvider(provider);
 
     const interval = setInterval(async () => {
       const tokens = await selectedProvider.refreshSession(
-        realm,
-        clientId,
-        clientSecret,
+        authParams,
         isProduction
       );
 
@@ -103,7 +88,7 @@ function AuthProvider(props: AuthProviderProps) {
   };
 
   const loadUserFromStorage = async () => {
-    if (tokenIsFetched.current || !realm) return;
+    if (tokenIsFetched.current) return;
 
     if (isSessionExpired) {
       setIsLoading(false);
@@ -113,12 +98,7 @@ function AuthProvider(props: AuthProviderProps) {
     const selectedProvider = getProvider(provider);
 
     const sessionData = await selectedProvider.validateSession(
-      {
-        clientId,
-        clientSecret,
-        realm,
-        authorizationParams,
-      },
+      authParams,
       isProduction,
       tokenIsFetched,
       setupRefreshInterval
@@ -136,27 +116,12 @@ function AuthProvider(props: AuthProviderProps) {
   };
 
   const loginWithRedirect = useCallback(async () => {
-    if (!realm) return;
     const selectedProvider = getProvider(provider);
 
     setIsSessionExpired(false);
 
-    await selectedProvider.loginWithRedirect({
-      clientId,
-      clientSecret,
-      realm,
-      authorizationParams,
-    },
-    isProduction
-  );
-  }, [
-    provider,
-    clientId,
-    clientSecret,
-    realm,
-    authorizationParams,
-    isProduction,
-  ]);
+    await selectedProvider.loginWithRedirect(authParams, isProduction);
+  }, [provider, authParams, isProduction]);
 
   const logout = useCallback(
     (sessionExpired?: boolean) => {
@@ -167,8 +132,13 @@ function AuthProvider(props: AuthProviderProps) {
         setIsSessionExpired(true);
       }
 
-      if (accessToken && realm) {
-        selectedProvider.logout(accessToken, realm, isProduction, sessionExpired);
+      if (accessToken) {
+        selectedProvider.logout(
+          accessToken,
+          authParams,
+          isProduction,
+          sessionExpired
+        );
       }
 
       setUser(undefined);
@@ -176,10 +146,18 @@ function AuthProvider(props: AuthProviderProps) {
       setIsAuthenticated(false);
       setIsLoading(false);
     },
-    [accessToken, realm, isProduction]
+    [accessToken, authParams, isProduction]
   );
 
   useEffect(() => {
+    if (!isLoading && isAuthenticated && isSessionExpired) {
+      logout();
+    }
+  }, [isLoading, isAuthenticated, isSessionExpired]);
+
+  useEffect(() => {
+    validateProvider(provider, authParams);
+
     resetSignOutTimer(
       signOutTimeoutRef,
       signOutIntervalRef,
@@ -191,6 +169,15 @@ function AuthProvider(props: AuthProviderProps) {
       setRemainingSignOutTime,
       logout
     );
+
+    loadUserFromStorage();
+
+    const selectedProvider = getProvider(provider);
+
+    const storedExpiresIn = selectedProvider.getExpiredTime(isProduction);
+    if (storedExpiresIn) {
+      setExpiresIn(storedExpiresIn);
+    }
 
     return setupSignOutEvents(
       withSignOutTimeout || false,
@@ -209,23 +196,6 @@ function AuthProvider(props: AuthProviderProps) {
       setRemainingSignOutTime,
       logout
     );
-  }, []);
-
-  useEffect(() => {
-    if (!isLoading && isAuthenticated && isSessionExpired) {
-      logout();
-    }
-  }, [isLoading, isAuthenticated, isSessionExpired]);
-
-  useEffect(() => {
-    loadUserFromStorage();
-
-    const selectedProvider = getProvider(provider);
-
-    const storedExpiresIn = selectedProvider.getExpiredTime(isProduction);
-    if (storedExpiresIn) {
-      setExpiresIn(storedExpiresIn);
-    }
   }, []);
 
   useEffect(() => {

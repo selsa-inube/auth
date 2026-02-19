@@ -1,3 +1,33 @@
+import { ProviderType } from "dist";
+import { IAuthParams } from "./types";
+
+const validateProvider = (provider: ProviderType, authParams: IAuthParams) => {
+  switch (provider) {
+    case "identidadv1":
+    case "identidadv2":
+      if (
+        !authParams.clientId ||
+        !authParams.clientSecret ||
+        !authParams.realm
+      ) {
+        throw new Error(
+          "Missing required parameters for identidadv1 provider."
+        );
+      }
+      break;
+
+    case "iauth":
+      if (!authParams.originatorId || !authParams.applicationName) {
+        throw new Error("Missing required parameters for iauth provider");
+      }
+      break;
+    default:
+      throw new Error(
+        `Provider ${provider} is not supported. Please use one of the following: identidadv1, identidadv2, iauth.`
+      );
+  }
+};
+
 const resetSignOutTimer = (
   signOutTimeoutRef: React.RefObject<NodeJS.Timeout | null>,
   signOutIntervalRef: React.RefObject<NodeJS.Timeout | null>,
@@ -153,4 +183,9 @@ const authRedirect = (url: string) => {
   window.dispatchEvent(new PopStateEvent("popstate"));
 };
 
-export { authRedirect, resetSignOutTimer, setupSignOutEvents };
+export {
+  authRedirect,
+  resetSignOutTimer,
+  setupSignOutEvents,
+  validateProvider,
+};

@@ -1,14 +1,14 @@
-import { getAuthorizationCode } from "src/utils/params";
+import { IUser } from "src/types/user";
 import { generateCodeChallengePair, generateState } from "../../utils/codes";
-import { ISessionData } from "../types";
+import {
+  IAccessTokenResponse,
+  IAuthorizationCodeResponse,
+  IRefreshTokenResponse,
+  IRevokeTokenResponse,
+} from "./types";
 
 const SERVICE_URL =
   "https://odin.selsacloud.com/linix/v7/da77663b-eeaf-42a0-a093-5efbdb1e54d2/servicio/identidad";
-
-interface IAuthorizationCodeResponse {
-  state: string;
-  redirectUri: string;
-}
 
 const requestAuthorizationCode = async (
   clientId: string,
@@ -52,14 +52,6 @@ const requestAuthorizationCode = async (
     console.error("Error:", error);
   }
 };
-
-interface IAccessTokenResponse {
-  accessToken: string;
-  tokenType: number;
-  expiresIn: string;
-  refreshToken: string;
-  realm: string;
-}
 
 const getAccessToken = async (
   code: string,
@@ -112,7 +104,7 @@ const getAccessToken = async (
   }
 };
 
-const verifyAccessToken = async (accessToken: string, realm: string) => {
+const getUserData = async (accessToken: string, realm: string) => {
   try {
     const res = await fetch(`${SERVICE_URL}/oauth2/token/${realm}/info`, {
       method: "GET",
@@ -137,36 +129,23 @@ const verifyAccessToken = async (accessToken: string, realm: string) => {
     }
 
     if (data.expires_in && data.idSesion && data.usuario) {
-      const sessionData: ISessionData = {
-        expiresIn: data.expires_in,
-        idSesion: data.idSesion,
-        accessToken,
-        user: {
-          id: data.usuario.id,
-          company: data.usuario.repositorio,
-          email: data.usuario.correoElectronico,
-          firstName,
-          lastName,
-          identification: data.usuario.identificacion,
-          phone: data.usuario.telefonoMovil,
-          type: data.usuario.tipo,
-        },
+      const userData: IUser = {
+        id: data.usuario.id,
+        company: data.usuario.repositorio,
+        email: data.usuario.correoElectronico,
+        firstName,
+        lastName,
+        identification: data.usuario.identificacion,
+        phone: data.usuario.telefonoMovil,
+        type: data.usuario.tipo,
       };
 
-      return sessionData;
+      return userData;
     }
   } catch (error) {
     console.error("Error:", error);
   }
 };
-
-interface IRefreshTokenResponse {
-  accessToken: string;
-  tokenType: number;
-  expiresIn: string;
-  refreshToken: string;
-  realm: string;
-}
 
 const refreshAccessToken = async (
   accessToken: string,
@@ -210,10 +189,6 @@ const refreshAccessToken = async (
   }
 };
 
-interface IRevokeTokenResponse {
-  accessToken: string;
-}
-
 const revokeAccessToken = async (accessToken: string, realm: string) => {
   try {
     const res = await fetch(`${SERVICE_URL}/oauth2/token/${realm}`, {
@@ -238,13 +213,12 @@ const revokeAccessToken = async (accessToken: string, realm: string) => {
   }
 };
 
-export {
+const identidadv1Auth = {
   getAccessToken,
-  getAuthorizationCode,
   refreshAccessToken,
   requestAuthorizationCode,
   revokeAccessToken,
-  verifyAccessToken,
+  getUserData,
 };
 
-export type { IRefreshTokenResponse, ISessionData };
+export { identidadv1Auth };

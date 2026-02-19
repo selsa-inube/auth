@@ -1,26 +1,27 @@
 import { getAuthStorage } from "src/context/config/storage";
 import { IAuthParams } from "src/context/types";
 import { IUser } from "src/types/user";
-import { getAuthorizationCode } from "src/utils/params";
+import { IRefreshTokenResponse } from "../identidadv1/types";
 import { ISessionData } from "../types";
-import { identidadv2Auth } from "./authorization";
+import { iAuthAuth } from "./authorization";
 
 const loginWithRedirect = async (
   authParams: IAuthParams,
   isProduction: boolean
 ): Promise<void> => {
-  const { clientId, clientSecret, realm, redirectUri, scope } = authParams;
+  const authStorage = getAuthStorage(isProduction);
+  authStorage.clear();
+  window.history.replaceState({}, "", "/");
 
-  if (!clientSecret || !realm || !clientId) return;
+  const baseUrl = new URL(iAuthAuth.getServiceUrl(isProduction));
 
-  await identidadv2Auth.requestAuthorizationCode(
-    clientId,
-    realm,
-    redirectUri,
-    scope,
-    "online",
+  const url = await iAuthAuth.buildAuthorizationUrl(
+    baseUrl,
+    authParams,
     isProduction
   );
+
+  window.location.replace(url);
 };
 
 const validateSession = async (
@@ -45,29 +46,17 @@ const validateSession = async (
   if (!savedUser || !savedAccessToken) {
     tokenIsFetched.current = true;
 
-    const { clientId, clientSecret, realm, redirectUri } = authParams;
-
-    const { authorizationCode, state } = getAuthorizationCode();
-
-    if (!authorizationCode || !state || !clientId || !clientSecret || !realm)
-      return;
+    const { originatorId } = authParams;
 
     window.history.replaceState({}, document.title, window.location.pathname);
 
-    const accessTokenResponse = await identidadv2Auth.getAccessToken(
-      authorizationCode,
-      clientId,
-      clientSecret,
-      realm,
-      redirectUri,
-      isProduction
-    );
+    const accessTokenResponse = await iAuthAuth.getAccessToken();
 
-    if (!accessTokenResponse) return;
+    if (!accessTokenResponse || !originatorId) return;
 
-    const userData = await identidadv2Auth.getUserData(
+    const userData = await iAuthAuth.getUserData(
       accessTokenResponse.accessToken,
-      realm,
+      originatorId,
       isProduction
     );
 
@@ -96,50 +85,45 @@ const validateSession = async (
 };
 
 const refreshSession = async (
-  authParams: IAuthParams,
+  _: IAuthParams,
   isProduction: boolean
-) => {
+): Promise<IRefreshTokenResponse | undefined> => {
   const authStorage = getAuthStorage(isProduction);
 
   const refreshToken = authStorage.getItem("refreshToken");
 
-  const { clientId, clientSecret, realm } = authParams;
+  if (!refreshToken) return;
 
-  if (realm && clientSecret && clientId && refreshToken) {
-    const refreshTokenResponse = await identidadv2Auth.refreshAccessToken(
-      realm,
-      clientId,
-      clientSecret,
-      refreshToken,
-      isProduction
-    );
-    if (!refreshTokenResponse) return;
-
-    authStorage.setItem("accessToken", refreshTokenResponse.accessToken);
-    authStorage.setItem("refreshToken", refreshTokenResponse.refreshToken);
-    authStorage.setItem("expiresIn", refreshTokenResponse.expiresIn);
-
-    return refreshTokenResponse;
-  }
+  return Promise.resolve({
+    accessToken: refreshToken,
+    tokenType: 1,
+    expiresIn: "3600",
+    refreshToken: refreshToken,
+    realm: "default",
+  });
 };
 
 const logout = async (
-  accessToken: string,
+  _: string,
   authParams: IAuthParams,
   isProduction: boolean
 ) => {
-  const { realm } = authParams;
-
-  if (realm) {
-    await identidadv2Auth.revokeAccessToken(accessToken, realm, isProduction);
-  }
-
   const authStorage = getAuthStorage(isProduction);
 
   authStorage.removeItem("user");
   authStorage.removeItem("accessToken");
   authStorage.removeItem("refreshToken");
   authStorage.removeItem("expiresIn");
+
+  const baseUrl = new URL(`${iAuthAuth.getServiceUrl(isProduction)}/logout`);
+
+  const url = await iAuthAuth.buildAuthorizationUrl(
+    baseUrl,
+    authParams,
+    isProduction
+  );
+
+  window.location.replace(url);
 };
 
 const getExpiredTime = (isProduction: boolean): number | null => {
@@ -149,7 +133,8 @@ const getExpiredTime = (isProduction: boolean): number | null => {
 
   return expiresIn ? Number(expiresIn) : null;
 };
-const identidadV2Repository = {
+
+const iAuthRepository = {
   loginWithRedirect,
   validateSession,
   refreshSession,
@@ -157,4 +142,4 @@ const identidadV2Repository = {
   getExpiredTime,
 };
 
-export { identidadV2Repository };
+export { iAuthRepository };

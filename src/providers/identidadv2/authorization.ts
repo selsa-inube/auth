@@ -1,6 +1,11 @@
-import { getAuthorizationCode } from "src/utils/params";
+import { getAuthStorage } from "src/context/config/storage";
+import { IUser } from "src/types/user";
 import { generateCodeChallengePair, generateState } from "../../utils/codes";
-import { ISessionData } from "../types";
+import {
+  IAccessTokenResponse,
+  IRefreshTokenResponse,
+  IRevokeTokenResponse,
+} from "./types";
 
 const getServiceUrl = (isProduction: boolean) => {
   return isProduction
@@ -27,8 +32,10 @@ const requestAuthorizationCode = async (
     const { codeChallenge, codeVerifier } = await generateCodeChallengePair();
     const state = generateState();
 
-    sessionStorage.setItem("pkce_code_verifier", codeVerifier);
-    sessionStorage.setItem("oauth_state", state);
+    const authStorage = getAuthStorage(isProduction);
+
+    authStorage.setItem("pkce_code_verifier", codeVerifier);
+    authStorage.setItem("oauth_state", state);
 
     const params = new URLSearchParams({
       protocol: "oauth2",
@@ -54,14 +61,6 @@ const requestAuthorizationCode = async (
   }
 };
 
-interface IAccessTokenResponse {
-  accessToken: string;
-  tokenType: number;
-  expiresIn: string;
-  refreshToken: string;
-  realm: string;
-}
-
 const getAccessToken = async (
   code: string,
   clientId: string,
@@ -71,7 +70,8 @@ const getAccessToken = async (
   isProduction: boolean
 ) => {
   try {
-    const codeVerifier = sessionStorage.getItem("pkce_code_verifier");
+    const authStorage = getAuthStorage(isProduction);
+    const codeVerifier = authStorage.getItem("pkce_code_verifier");
 
     if (!codeVerifier) {
       throw new Error("PKCE code verifier not found in session storage");
@@ -121,7 +121,7 @@ const getAccessToken = async (
   }
 };
 
-const verifyAccessToken = async (
+const getUserData = async (
   accessToken: string,
   realm: string,
   isProduction: boolean
@@ -143,36 +143,23 @@ const verifyAccessToken = async (
     const data = await res.json();
 
     if (data && data.email && data.name) {
-      const sessionData: ISessionData = {
-        expiresIn: 0,
-        idSesion: "",
-        accessToken,
-        user: {
-          id: data.identityDocument || "",
-          company: "",
-          email: data.email,
-          firstName: data.given_name || "",
-          lastName: data.family_name || "",
-          identification: data.identityDocument || "",
-          phone: data.mobile_phone || "",
-          type: "",
-        },
+      const userData: IUser = {
+        id: data.identityDocument || "",
+        company: "",
+        email: data.email,
+        firstName: data.given_name || "",
+        lastName: data.family_name || "",
+        identification: data.identityDocument || "",
+        phone: data.mobile_phone || "",
+        type: "",
       };
 
-      return sessionData;
+      return userData;
     }
   } catch (error) {
     console.error("Error:", error);
   }
 };
-
-interface IRefreshTokenResponse {
-  accessToken: string;
-  tokenType: number;
-  expiresIn: string;
-  refreshToken: string;
-  realm: string;
-}
 
 const refreshAccessToken = async (
   realm: string,
@@ -219,10 +206,6 @@ const refreshAccessToken = async (
   }
 };
 
-interface IRevokeTokenResponse {
-  accessToken: string;
-}
-
 const revokeAccessToken = async (
   accessToken: string,
   realm: string,
@@ -254,13 +237,12 @@ const revokeAccessToken = async (
   }
 };
 
-export {
+const identidadv2Auth = {
   getAccessToken,
-  getAuthorizationCode,
   refreshAccessToken,
   requestAuthorizationCode,
   revokeAccessToken,
-  verifyAccessToken,
+  getUserData,
 };
 
-export type { IRefreshTokenResponse };
+export { identidadv2Auth };

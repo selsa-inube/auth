@@ -1,59 +1,39 @@
+import { IAuthParams } from "src/context/types";
 import { IUser } from "src/types/user";
 
 interface ISessionData {
-  idSesion: string;
   accessToken: string;
   user: IUser;
-  expiresIn: number;
-  refreshToken?: string;
 }
 
 interface IProviderRepository {
   loginWithRedirect: (
-    options: {
-      clientId: string;
-      clientSecret?: string;
-      realm: string;
-      authorizationParams: {
-        redirectUri: string;
-        scope: string[];
-      };
-    },
+    authParams: IAuthParams,
     isProduction: boolean
   ) => Promise<void>;
 
   validateSession: (
-    options: {
-      clientId: string;
-      clientSecret?: string;
-      realm: string;
-      authorizationParams: {
-        redirectUri: string;
-        scope: string[];
-      };
-    },
+    authParams: IAuthParams,
     isProduction: boolean,
     tokenIsFetched: React.RefObject<boolean>,
     setupRefreshInterval: () => void
   ) => Promise<ISessionData | undefined>;
 
   refreshSession: (
-    realm: string,
-    clientId: string,
-    clientSecret: string,
+    authParams: IAuthParams,
     isProduction: boolean
   ) => Promise<
     | {
-      accessToken: string;
-      refreshToken: string;
-      expiresIn: string;
-    }
+        accessToken: string;
+        refreshToken: string;
+        expiresIn: string;
+      }
     | undefined
   >;
 
   logout: (
     accessToken: string,
-    realm: string,
+    authParams: IAuthParams,
     isProduction: boolean,
     sessionExpired?: boolean
   ) => Promise<void>;

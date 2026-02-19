@@ -1,30 +1,24 @@
 import { getAuthStorage } from "src/context/config/storage";
+import { IAuthParams } from "src/context/types";
 import { IUser } from "src/types/user";
-import {
-  getAccessToken,
-  getAuthorizationCode,
-  ISessionData,
-  refreshAccessToken,
-  requestAuthorizationCode,
-  revokeAccessToken,
-  verifyAccessToken,
-} from "./authorization";
+import { getAuthorizationCode } from "src/utils/params";
+import { ISessionData } from "../types";
+import { identidadv1Auth } from "./authorization";
 
 const loginWithRedirect = async (
-  options: Record<string, any>,
-  _: boolean
+  authParams: IAuthParams,
+  isProduction: boolean
 ): Promise<void> => {
-  const { clientId, clientSecret, realm, authorizationParams, isProduction } = options;
+  const { clientId, clientSecret, realm, redirectUri, scope } = authParams;
+  authParams;
 
-  if (!clientSecret || !realm) return;
-
-  const { redirectUri, scope } = authorizationParams;
+  if (!clientSecret || !realm || !clientId) return;
 
   const authStorage = getAuthStorage(isProduction);
   authStorage.clear();
   window.history.replaceState({}, "", "/");
 
-  await requestAuthorizationCode(
+  await identidadv1Auth.requestAuthorizationCode(
     clientId,
     clientSecret,
     realm,
@@ -34,7 +28,7 @@ const loginWithRedirect = async (
 };
 
 const validateSession = async (
-  options: Record<string, any>,
+  authParams: IAuthParams,
   isProduction: boolean,
   tokenIsFetched: React.RefObject<boolean>,
   setupRefreshInterval: () => void
@@ -43,8 +37,6 @@ const validateSession = async (
 
   let savedUser: IUser | undefined;
   let savedAccessToken: string | undefined;
-  let savedRefreshToken: string | undefined;
-  let savedExpiresIn: string | undefined;
 
   savedUser = authStorage.getItem("user")
     ? JSON.parse(authStorage.getItem("user") as string)
@@ -54,27 +46,19 @@ const validateSession = async (
     ? (authStorage.getItem("accessToken") as string)
     : undefined;
 
-  savedRefreshToken = authStorage.getItem("refreshToken")
-    ? (authStorage.getItem("refreshToken") as string)
-    : undefined;
-
-  savedExpiresIn = authStorage.getItem("expiresIn")
-    ? (authStorage.getItem("expiresIn") as string)
-    : undefined;
-
   if (!savedUser || !savedAccessToken) {
     tokenIsFetched.current = true;
 
-    const { clientId, clientSecret, realm, authorizationParams } = options;
-    const { redirectUri } = authorizationParams;
+    const { clientId, clientSecret, realm, redirectUri } = authParams;
 
     const { authorizationCode, state } = getAuthorizationCode();
 
-    if (!authorizationCode || !state) return;
+    if (!authorizationCode || !state || !clientId || !clientSecret || !realm)
+      return;
 
     window.history.replaceState({}, document.title, window.location.pathname);
 
-    const accessTokenResponse = await getAccessToken(
+    const accessTokenResponse = await identidadv1Auth.getAccessToken(
       authorizationCode,
       clientId,
       clientSecret,
@@ -84,45 +68,37 @@ const validateSession = async (
 
     if (!accessTokenResponse) return;
 
-    const sessionData = await verifyAccessToken(
+    const userData = await identidadv1Auth.getUserData(
       accessTokenResponse.accessToken,
       realm
     );
 
-    if (!sessionData) return;
+    if (!userData) return;
 
-    if (sessionData?.expiresIn) {
+    if (accessTokenResponse?.expiresIn) {
       setupRefreshInterval();
     }
 
-    authStorage.setItem("user", JSON.stringify(sessionData.user));
-    authStorage.setItem("accessToken", sessionData.accessToken);
-    authStorage.setItem("expiresIn", sessionData.expiresIn.toString());
+    authStorage.setItem("user", JSON.stringify(userData));
+    authStorage.setItem("accessToken", accessTokenResponse.accessToken);
+    authStorage.setItem("expiresIn", accessTokenResponse.expiresIn.toString());
 
-    savedUser = sessionData?.user;
+    savedUser = userData;
     savedAccessToken = accessTokenResponse.accessToken;
-    savedExpiresIn = accessTokenResponse.expiresIn;
 
-    if (sessionData.refreshToken) {
-      authStorage.setItem("refreshToken", sessionData.refreshToken);
-
-      savedRefreshToken = accessTokenResponse.refreshToken;
+    if (accessTokenResponse.refreshToken) {
+      authStorage.setItem("refreshToken", accessTokenResponse.refreshToken);
     }
   }
 
   return {
-    idSesion: savedUser.id,
     user: savedUser,
     accessToken: savedAccessToken,
-    refreshToken: savedRefreshToken,
-    expiresIn: Number(savedExpiresIn),
   };
 };
 
 const refreshSession = async (
-  realm: string,
-  clientId: string,
-  clientSecret: string,
+  authParams: IAuthParams,
   isProduction: boolean
 ) => {
   const authStorage = getAuthStorage(isProduction);
@@ -130,8 +106,10 @@ const refreshSession = async (
   const savedAccessToken = authStorage.getItem("accessToken");
   const refreshToken = authStorage.getItem("refreshToken");
 
-  if (savedAccessToken && realm && clientSecret && refreshToken) {
-    const refreshTokenResponse = await refreshAccessToken(
+  const { clientId, clientSecret, realm } = authParams;
+
+  if (savedAccessToken && realm && clientSecret && clientId && refreshToken) {
+    const refreshTokenResponse = await identidadv1Auth.refreshAccessToken(
       savedAccessToken,
       realm,
       clientId,
@@ -150,11 +128,14 @@ const refreshSession = async (
 
 const logout = async (
   accessToken: string,
-  realm: string,
-  isProduction: boolean,
+  authParams: IAuthParams,
+  isProduction: boolean
 ) => {
-  await revokeAccessToken(accessToken, realm);
+  const { realm } = authParams;
 
+  if (realm) {
+    await identidadv1Auth.revokeAccessToken(accessToken, realm);
+  }
   const authStorage = getAuthStorage(isProduction);
 
   authStorage.removeItem("user");
