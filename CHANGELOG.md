@@ -1,3 +1,19 @@
+# v1.1.11 (Fri Feb 27 2026)
+
+#### 🐛 Bug Fix
+
+- jlara/1333 [#19](https://github.com/selsa-inube/auth/pull/19) ([@Sebas3245](https://github.com/Sebas3245))
+
+#### ⚠️ Pushed to `main`
+
+- fix: iauth integration ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.1.10 (Thu Feb 19 2026)
 
 #### 🐛 Bug Fix
