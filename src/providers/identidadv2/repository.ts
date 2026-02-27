@@ -149,7 +149,11 @@ const getExpiredTime = (isProduction: boolean): number | null => {
 
   return expiresIn ? Number(expiresIn) : null;
 };
+
+const hasRedirectLogout = false;
+
 const identidadV2Repository = {
+  hasRedirectLogout,
   loginWithRedirect,
   validateSession,
   refreshSession,

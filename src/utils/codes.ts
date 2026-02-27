@@ -16,23 +16,15 @@ function generateCodeVerifier(): string {
   return codeVerifier.join("");
 }
 
-function base64UrlEncode(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-}
-
 async function generateCodeChallenge(codeVerifier: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(codeVerifier);
   const digest = await crypto.subtle.digest("SHA-256", data);
-  return base64UrlEncode(digest);
+
+  const hashArray = Array.from(new Uint8Array(digest));
+  const hex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  return hex;
 }
 
 async function generateCodeChallengePair(): Promise<{
@@ -45,7 +37,6 @@ async function generateCodeChallengePair(): Promise<{
 }
 
 export {
-  base64UrlEncode,
   generateCodeChallenge,
   generateCodeChallengePair,
   generateCodeVerifier,

@@ -37,7 +37,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         "identityDocument",
       ],
       originatorId: "fondecom-personas-id",
-      applicationName: "portal-servicios-financieros",
+      applicationName: "Portal de servicios financieros",
     }}
     withSignOutTimeout={WITH_AUTO_SIGNOUT}
     signOutTime={TIMEOUT}

@@ -8,6 +8,7 @@ import {
 } from "react";
 import { getProvider } from "src/providers/factory";
 import { IUser } from "src/types/user";
+import { getAuthStorage } from "./config/storage";
 import { IAuthContext, IAuthParams, ProviderType } from "./types";
 import {
   resetSignOutTimer,
@@ -57,8 +58,8 @@ function AuthProvider(props: AuthProviderProps) {
   const [user, setUser] = useState<IUser>();
   const [accessToken, setAccessToken] = useState<string>();
   const [isSessionExpired, setIsSessionExpired] = useState(() => {
-    const selectedProvider = getProvider(provider);
-    return selectedProvider.getSessionExpired?.(isProduction) ?? false;
+    const authStorage = getAuthStorage(isProduction);
+    return authStorage.getItem("sessionExpired") === "true";
   });
   const [remainingSignOutTime, setRemainingSignOutTime] = useState<number>(
     signOutTime || 0
@@ -105,7 +106,7 @@ function AuthProvider(props: AuthProviderProps) {
     );
 
     if (sessionData?.user && sessionData?.accessToken) {
-      selectedProvider.removeSessionExpired?.(isProduction);
+      getAuthStorage(isProduction).removeItem("sessionExpired");
       setIsSessionExpired(false);
       setUser(sessionData.user);
       setAccessToken(sessionData.accessToken);
@@ -119,32 +120,33 @@ function AuthProvider(props: AuthProviderProps) {
     const selectedProvider = getProvider(provider);
 
     setIsSessionExpired(false);
-
     await selectedProvider.loginWithRedirect(authParams, isProduction);
   }, [provider, authParams, isProduction]);
 
   const logout = useCallback(
-    (sessionExpired?: boolean) => {
+    async (sessionExpired?: boolean) => {
       const selectedProvider = getProvider(provider);
 
       if (sessionExpired) {
-        selectedProvider.setSessionExpired?.(isProduction);
+        getAuthStorage(isProduction).setItem("sessionExpired", "true");
         setIsSessionExpired(true);
       }
 
       if (accessToken) {
-        selectedProvider.logout(
+        await selectedProvider.logout(
           accessToken,
           authParams,
           isProduction,
           sessionExpired
         );
-      }
 
-      setUser(undefined);
-      setAccessToken(undefined);
-      setIsAuthenticated(false);
-      setIsLoading(false);
+        if (!selectedProvider.hasRedirectLogout) {
+          setUser(undefined);
+          setAccessToken(undefined);
+          setIsAuthenticated(false);
+          setIsLoading(false);
+        }
+      }
     },
     [accessToken, authParams, isProduction]
   );

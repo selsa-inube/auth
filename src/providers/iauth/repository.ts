@@ -48,18 +48,15 @@ const validateSession = async (
 
     const { originatorId } = authParams;
 
-    window.history.replaceState({}, document.title, window.location.pathname);
-
     const accessTokenResponse = await iAuthAuth.getAccessToken();
 
     if (!accessTokenResponse || !originatorId) return;
-
     const userData = await iAuthAuth.getUserData(
       accessTokenResponse.accessToken,
       originatorId,
       isProduction
     );
-
+    window.history.replaceState({}, document.title, window.location.pathname);
     if (!userData) return;
 
     if (accessTokenResponse?.expiresIn) {
@@ -109,7 +106,6 @@ const logout = async (
   isProduction: boolean
 ) => {
   const authStorage = getAuthStorage(isProduction);
-
   authStorage.removeItem("user");
   authStorage.removeItem("accessToken");
   authStorage.removeItem("refreshToken");
@@ -134,7 +130,10 @@ const getExpiredTime = (isProduction: boolean): number | null => {
   return expiresIn ? Number(expiresIn) : null;
 };
 
+const hasRedirectLogout = true;
+
 const iAuthRepository = {
+  hasRedirectLogout,
   loginWithRedirect,
   validateSession,
   refreshSession,
