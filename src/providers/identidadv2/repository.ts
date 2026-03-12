@@ -47,12 +47,9 @@ const validateSession = async (
 
     const { clientId, clientSecret, realm, redirectUri } = authParams;
 
-    const { authorizationCode, state } = getAuthorizationCode();
+    const { authorizationCode } = getAuthorizationCode();
 
-    if (!authorizationCode || !state || !clientId || !clientSecret || !realm)
-      return;
-
-    window.history.replaceState({}, document.title, window.location.pathname);
+    if (!authorizationCode || !clientId || !clientSecret || !realm) return;
 
     const accessTokenResponse = await identidadv2Auth.getAccessToken(
       authorizationCode,
@@ -87,6 +84,8 @@ const validateSession = async (
     if (accessTokenResponse.refreshToken) {
       authStorage.setItem("refreshToken", accessTokenResponse.refreshToken);
     }
+
+    window.history.replaceState({}, document.title, window.location.pathname);
   }
 
   return {

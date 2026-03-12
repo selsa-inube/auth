@@ -57,10 +57,9 @@ function AuthProvider(props: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<IUser>();
   const [accessToken, setAccessToken] = useState<string>();
-  const [isSessionExpired, setIsSessionExpired] = useState(() => {
-    const authStorage = getAuthStorage(isProduction);
-    return authStorage.getItem("sessionExpired") === "true";
-  });
+  const [isSessionExpired, setIsSessionExpired] = useState(
+    getAuthStorage(isProduction).getItem("sessionExpired") === "true"
+  );
   const [remainingSignOutTime, setRemainingSignOutTime] = useState<number>(
     signOutTime || 0
   );
@@ -123,33 +122,20 @@ function AuthProvider(props: AuthProviderProps) {
     await selectedProvider.loginWithRedirect(authParams, isProduction);
   }, [provider, authParams, isProduction]);
 
-  const logout = useCallback(
-    async (sessionExpired?: boolean) => {
-      const selectedProvider = getProvider(provider);
+  const logout = useCallback(async () => {
+    const selectedProvider = getProvider(provider);
 
-      if (sessionExpired) {
-        getAuthStorage(isProduction).setItem("sessionExpired", "true");
-        setIsSessionExpired(true);
+    if (accessToken) {
+      await selectedProvider.logout(accessToken, authParams, isProduction);
+
+      if (!selectedProvider.hasRedirectLogout) {
+        setUser(undefined);
+        setAccessToken(undefined);
+        setIsAuthenticated(false);
+        setIsLoading(false);
       }
-
-      if (accessToken) {
-        await selectedProvider.logout(
-          accessToken,
-          authParams,
-          isProduction,
-          sessionExpired
-        );
-
-        if (!selectedProvider.hasRedirectLogout) {
-          setUser(undefined);
-          setAccessToken(undefined);
-          setIsAuthenticated(false);
-          setIsLoading(false);
-        }
-      }
-    },
-    [accessToken, authParams, isProduction]
-  );
+    }
+  }, [accessToken, authParams, isProduction]);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated && isSessionExpired) {
@@ -168,6 +154,8 @@ function AuthProvider(props: AuthProviderProps) {
       redirectUrlOnTimeout,
       remainingSignOutTime,
       signOutCritialPaths,
+      isProduction,
+      setIsSessionExpired,
       setRemainingSignOutTime,
       logout
     );
@@ -195,6 +183,8 @@ function AuthProvider(props: AuthProviderProps) {
       resetSignOutTouchStart,
       resetSignOutChangePage,
       signOutCritialPaths,
+      isProduction,
+      setIsSessionExpired,
       setRemainingSignOutTime,
       logout
     );

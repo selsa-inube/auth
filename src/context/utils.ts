@@ -1,4 +1,5 @@
 import { ProviderType } from "dist";
+import { getAuthStorage } from "./config/storage";
 import { IAuthParams } from "./types";
 
 const validateProvider = (provider: ProviderType, authParams: IAuthParams) => {
@@ -36,8 +37,10 @@ const resetSignOutTimer = (
   redirectUrlOnTimeout: string | undefined,
   remainingSignOutTime: number,
   signOutCritialPaths: string[] | undefined,
+  isProduction: boolean,
+  setIsSessionExpired: React.Dispatch<React.SetStateAction<boolean>>,
   setRemainingSignOutTime: React.Dispatch<React.SetStateAction<number>>,
-  logout: (isTimeout: boolean) => void
+  logout: () => void
 ) => {
   signOutTimeoutRef.current && clearTimeout(signOutTimeoutRef.current);
   signOutIntervalRef.current && clearInterval(signOutIntervalRef.current);
@@ -55,7 +58,10 @@ const resetSignOutTimer = (
         authRedirect(redirectUrlOnTimeout);
       }
 
-      logout(true);
+      getAuthStorage(isProduction).setItem("sessionExpired", "true");
+      setIsSessionExpired(true);
+
+      logout();
     }, signOutTime);
 
     signOutIntervalRef.current = setInterval(() => {
@@ -83,8 +89,10 @@ const setupSignOutEvents = (
   resetSignOutTouchStart: boolean,
   resetSignOutChangePage: boolean,
   signOutCritialPaths: string[] | undefined,
+  isProduction: boolean,
+  setIsSessionExpired: React.Dispatch<React.SetStateAction<boolean>>,
   setRemainingSignOutTime: React.Dispatch<React.SetStateAction<number>>,
-  logout: (isTimeout: boolean) => void
+  logout: () => void
 ) => {
   const resetTimer = () =>
     resetSignOutTimer(
@@ -95,6 +103,8 @@ const setupSignOutEvents = (
       redirectUrlOnTimeout,
       remainingSignOutTime,
       signOutCritialPaths,
+      isProduction,
+      setIsSessionExpired,
       setRemainingSignOutTime,
       logout
     );

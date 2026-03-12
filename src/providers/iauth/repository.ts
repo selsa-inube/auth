@@ -56,7 +56,7 @@ const validateSession = async (
       originatorId,
       isProduction
     );
-    window.history.replaceState({}, document.title, window.location.pathname);
+
     if (!userData) return;
 
     if (accessTokenResponse?.expiresIn) {
@@ -73,6 +73,8 @@ const validateSession = async (
     if (accessTokenResponse.refreshToken) {
       authStorage.setItem("refreshToken", accessTokenResponse.refreshToken);
     }
+
+    window.history.replaceState({}, document.title, window.location.pathname);
   }
 
   return {
