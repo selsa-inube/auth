@@ -1,3 +1,15 @@
+# v1.1.12 (Thu Mar 12 2026)
+
+#### ⚠️ Pushed to `main`
+
+- fix: bucle login ([@Sebas3245](https://github.com/Sebas3245))
+
+#### Authors: 1
+
+- Juan Sebastian Lara Aros ([@Sebas3245](https://github.com/Sebas3245))
+
+---
+
 # v1.1.11 (Fri Feb 27 2026)
 
 #### 🐛 Bug Fix
